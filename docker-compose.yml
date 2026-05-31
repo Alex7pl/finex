@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: finex_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: finex_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - finex_pg:/var/lib/postgresql
+
+volumes:
+  finex_pg:

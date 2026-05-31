@@ -1,0 +1,22 @@
+{
+  "name": "finex",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @finex/api --filter @finex/web dev",
+    "dev:api": "pnpm --filter @finex/api dev",
+    "dev:web": "pnpm --filter @finex/web dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11.5.0",
+      "onFail": "download"
+    }
+  },
+  "type": "module"
+}
