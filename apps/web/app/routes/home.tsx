@@ -36,7 +36,7 @@ export default function Home() {
           </a>
           <a
             href="/contact"
-            className="rounded-[22px] bg-[#ddffd5] px-6 py-4 font-medium text-[#4f5552] transition-colors hover:bg-[#d0ffc6] sm:px-9 lg:px-12"
+            className="rounded-[22px] bg-[#1a4731] px-6 py-4 font-medium text-[#fff4cc] transition-colors hover:bg-[#2f7f58] sm:px-9 lg:px-12"
           >
             Registrarse
           </a>
@@ -90,7 +90,7 @@ export default function Home() {
                     <a
                       href="/news"
                       aria-label="Leer noticia"
-                      className="mt-auto inline-flex h-8 w-14 items-center justify-center rounded-[9px] bg-[#ddffd5] text-[#55615a] transition-colors hover:bg-[#d0ffc6]"
+                      className="mt-auto inline-flex h-8 w-14 items-center justify-center rounded-[9px] bg-[#1a4731] text-[#fff4cc] transition-colors hover:bg-[#2f7f58]"
                     >
                       <ArrowRight className="h-5 w-5" strokeWidth={1.8} />
                     </a>
