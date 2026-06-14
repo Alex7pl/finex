@@ -3,6 +3,31 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  --color-background: #f7f8f5;
+  --color-foreground: #595e5b;
+  --color-foreground-muted: #626765;
+
+  --color-surface: #ffffff;
+  --color-surface-foreground: #606260;
+  --color-surface-heading: #5e615f;
+
+  --color-primary: #1a4731;
+  --color-primary-hover: #2f7f58;
+  --color-primary-foreground: #f7f8f5;
+
+  --color-secondary: #fff4cc;
+  --color-secondary-foreground: #595e5b;
+
+  --color-muted: #646866;
+  --color-muted-foreground: #4f5552;
+
+  --color-hero: #18342b;
+  --color-hero-surface: #1d332c;
+  --color-hero-overlay: #173229;
+  --color-hero-foreground: #dfffda;
+
+  --color-border: #e5e8e1;
 }
 
 html,
