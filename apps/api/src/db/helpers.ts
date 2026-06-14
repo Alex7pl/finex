@@ -14,8 +14,12 @@ export const timestampColumns = {
     .notNull(),
   updated_at: timestamp("updated_at", { withTimezone: true })
     .defaultNow()
+    .$onUpdate(() => new Date())
     .notNull(),
 };
 
-export const numberHelper = (name: string) =>
-  numeric(`${name}`, { precision: 10, scale: 2 });
+export const moneyColumn = (name: string) =>
+  numeric(name, { precision: 12, scale: 2 });
+
+export const rateColumn = (name: string) =>
+  numeric(name, { precision: 5, scale: 2 });
