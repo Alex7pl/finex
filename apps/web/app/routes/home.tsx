@@ -63,7 +63,7 @@ export default function Home() {
               <h1 className="max-w-5xl text-6xl font-normal leading-[0.98] tracking-normal color-secondary-foreground sm:text-7xl md:text-8xl lg:text-9xl">
                 Digitaliza tus
                 <br />
-                finanzas con IA
+                finanzas
               </h1>
             </div>
 
