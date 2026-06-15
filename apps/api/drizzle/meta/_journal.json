@@ -8,6 +8,13 @@
       "when": 1781435121023,
       "tag": "0000_fair_the_captain",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781461230023,
+      "tag": "0001_serious_bullseye",
+      "breakpoints": true
     }
   ]
 }
