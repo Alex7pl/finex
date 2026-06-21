@@ -7,6 +7,7 @@ export const user_tokens = pgTable("user_tokens", {
   user_id: uuid("user_id")
     .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" })
     .notNull(),
+  family_id: uuid("family_id").notNull(),
 
   token_hash: text("token_hash").notNull(),
   expires_at: timestamp("expires_at", { withTimezone: true })
