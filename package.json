@@ -4,9 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "pnpm -r --if-present build",
     "dev": "pnpm --parallel --filter @finex/api --filter @finex/web dev",
     "dev:api": "pnpm --filter @finex/api dev",
-    "dev:web": "pnpm --filter @finex/web dev"
+    "dev:web": "pnpm --filter @finex/web dev",
+    "typecheck": "pnpm -r --if-present typecheck"
   },
   "keywords": [],
   "author": "",

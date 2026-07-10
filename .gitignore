@@ -28,6 +28,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # Runtime / cache
+.atl/
 .cache/
 .tmp/
 tmp/

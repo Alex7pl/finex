@@ -1,0 +1,127 @@
+schema: spec-driven
+
+sdd_init:
+  id: sdd-init/finex
+  project: finex
+  detected_at: 2026-06-21
+  artifact_store:
+    mode: openspec
+  execution_mode: interactive
+
+context: |
+  Tech stack: pnpm workspace with TypeScript ESM, Node/Express API, React Router SSR web app, Effect, Drizzle ORM, PostgreSQL, Vite, Tailwind CSS.
+  Architecture: apps/api, apps/web, and packages/shared; API is module-oriented with db/runtime layers and repository/service/handler placeholders.
+  Testing: no real test runner is configured; API has a failing placeholder test script and web only has typecheck.
+  Style: strict TypeScript, 2-space JSON/TS formatting, semicolons, double quotes, React Router route modules, Zod environment validation.
+  Persistence: OpenSpec files are the SDD source of truth for this project.
+
+project:
+  name: finex
+  package_manager: pnpm
+  workspace_globs:
+    - apps/*
+    - packages/*
+  applications:
+    api:
+      path: apps/api
+      runtime: Node.js TypeScript ESM
+      framework: Express 5
+      architecture: Effect layers plus domain module folders
+      data:
+        orm: Drizzle ORM
+        database: PostgreSQL
+        driver: postgres
+    web:
+      path: apps/web
+      framework: React Router 7 with SSR
+      ui: React 19 and Tailwind CSS 4
+      bundler: Vite 8
+    shared:
+      path: packages/shared
+      purpose: shared TypeScript package currently exposing source modules
+  infrastructure:
+    docker_compose:
+      services:
+        - "postgres:18"
+
+strict_tdd: false
+strict_tdd_resolution:
+  source: no-test-runner-fallback
+  reason: No real unit/integration/E2E test runner is configured; the only API test script is the default failing placeholder.
+
+testing:
+  strict_tdd: false
+  detected_at: 2026-06-21
+  test_runner:
+    available: false
+    framework: none
+    command: ""
+    notes:
+      - "apps/api has `test: echo \"Error: no test specified\" && exit 1`, which is not a usable test runner."
+      - "apps/web has no test script or test dependencies."
+  layers:
+    unit:
+      available: false
+      tool: ""
+      command: ""
+    integration:
+      available: false
+      tool: ""
+      command: ""
+    e2e:
+      available: false
+      tool: ""
+      command: ""
+  coverage:
+    available: false
+    command: ""
+  quality:
+    linter:
+      available: false
+      command: ""
+    type_checker:
+      available: true
+      command: pnpm --filter @finex/web typecheck
+      notes:
+        - "API has TypeScript installed but no package script for type checking."
+        - "packages/shared has no package-level typecheck script."
+    formatter:
+      available: false
+      command: ""
+
+rules:
+  proposal:
+    - Include intent, scope, non-goals, rollback plan, and review workload forecast.
+    - Respect chained_pr_strategy `ask-always` before planning work likely to exceed the review budget.
+  specs:
+    - Use RFC 2119 keywords for requirements.
+    - Use Given/When/Then for scenarios.
+    - Keep generated technical artifacts in English unless explicitly requested otherwise.
+  design:
+    - Document architecture decisions with rationale and tradeoffs.
+    - Preserve the existing pnpm workspace boundaries between apps and shared packages.
+    - Prefer existing API module/layer patterns before introducing new structure.
+  tasks:
+    - Group by deliverable work unit and keep each unit reviewable.
+    - Include verification steps even when executable tests are unavailable.
+    - Forecast changed lines against review_budget_lines 400.
+  apply:
+    tdd: false
+    test_command: ""
+    instructions:
+      - Follow existing TypeScript, React Router, Effect, Drizzle, and workspace patterns.
+      - Do not treat the API placeholder test script as a valid verification command.
+  verify:
+    test_command: ""
+    build_command: pnpm --filter @finex/web build
+    typecheck_command: pnpm --filter @finex/web typecheck
+    coverage_threshold: 0
+    instructions:
+      - Report the missing test runner as a verification limitation until tests are configured.
+  archive:
+    - Archive completed changes under openspec/changes/archive/YYYY-MM-DD-{change-name}/.
+    - Warn before merging destructive deltas into main specs.
+
+delivery:
+  chained_pr_strategy: ask-always
+  review_budget_lines: 400

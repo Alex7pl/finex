@@ -1,4 +1,4 @@
+import { UserRepositoryPostgresLayer } from "@/modules/users/users.repository.postgres.js";
 import { Layer } from "effect";
-import { DatabaseLayer } from "../db/db.layer.js";
 
-export const AppLayer = Layer.mergeAll(DatabaseLayer);
+export const AppLayer = Layer.mergeAll(UserRepositoryPostgresLayer);

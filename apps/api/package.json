@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "predev": "pnpm --filter @finex/shared build",
     "dev": "tsx watch src/index.ts",
+    "pretypecheck": "pnpm --filter @finex/shared build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
@@ -15,9 +18,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@effect/platform": "^0.96.1",
-    "@effect/platform-node": "^0.107.0",
-    "@effect/rpc": "^0.75.1",
+    "@finex/shared": "workspace:*",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
