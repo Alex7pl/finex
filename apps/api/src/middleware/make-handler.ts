@@ -3,17 +3,20 @@ import type { Request, RequestHandler, Response, NextFunction } from "express";
 import {
   UnauthorizedError,
   ValidationError,
+  type HttpErrorResponse,
 } from "@finex/shared/errors.js";
 import { UserNotFound } from "@finex/shared/auth/auth.errors.js";
 import type { AuthenticatedUser } from "../runtime/request-context.js";
+import { DatabaseError } from "../shared/errors.js";
 import { runPublic, runProtected, type RequestData } from "../runtime/run-request.js";
 
-type AppError = UnauthorizedError | ValidationError | UserNotFound;
+type AppError = UnauthorizedError | ValidationError | UserNotFound | DatabaseError;
 
 const STATUS: Record<AppError["_tag"], number> = {
   UnauthorizedError: 401,
   ValidationError: 400,
   UserNotFound: 404,
+  DatabaseError: 500,
 };
 
 function writeError(
@@ -26,7 +29,13 @@ function writeError(
   if (Option.isSome(failureOption)) {
     const error = failureOption.value;
     const status = STATUS[error._tag];
-    res.status(status).json({ error: error._tag });
+    const body: HttpErrorResponse = {
+      error: {
+        code: error._tag,
+        requestId: res.locals.requestId,
+      },
+    };
+    res.status(status).json(body);
     return;
   }
 

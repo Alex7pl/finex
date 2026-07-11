@@ -307,7 +307,7 @@ app.use("/transactions", transactionsRouter);
 
 ### 1. API client (`apps/web/app/modules/{module}/{module}.api.ts`)
 
-Valida la respuesta con el mismo Schema del backend.
+Usa el cliente HTTP centralizado y valida la respuesta con el mismo Schema del backend. El `Request` entrante es opcional y solo se usa durante SSR para reenviar la cookie al origen de API configurado.
 
 ```ts
 import { Schema } from "effect";
@@ -317,15 +317,20 @@ import {
   TransactionDto,
 } from "@finex/shared/transactions/transactions.schema.js";
 
-export async function fetchTransactions(): Promise<TransactionDto[]> {
-  const raw = await http.get<unknown>("/transactions");
+export async function fetchTransactions(request?: Request): Promise<TransactionDto[]> {
+  const raw = await http<unknown>("/transactions", { request });
   return Schema.decodeUnknownSync(Schema.Array(TransactionDto))(raw);
 }
 
 export async function createTransaction(
   input: typeof CreateTransactionInput.Type,
+  request?: Request,
 ): Promise<TransactionDto> {
-  const raw = await http.post<unknown>("/transactions", input);
+  const raw = await http<unknown>("/transactions", {
+    method: "POST",
+    body: input,
+    request,
+  });
   return Schema.decodeUnknownSync(TransactionDto)(raw);
 }
 ```
@@ -372,18 +377,19 @@ import { useLoaderData } from "react-router";
 import type { Route } from "./+types/{module}";
 import { fetchTransactions, createTransaction } from "../modules/transactions/transactions.api.js";
 import { TransactionList } from "../modules/transactions/components/TransactionList.js";
+import { routeHandler } from "../libs/route-handler.js";
 
 // Corre en servidor (SSR) o cliente según config de React Router
-export async function loader(_: Route.LoaderArgs) {
-  const transactions = await fetchTransactions();
+export const loader = routeHandler(async ({ request }: Route.LoaderArgs) => {
+  const transactions = await fetchTransactions(request);
   return { transactions };
-}
+});
 
-export async function action({ request }: Route.ActionArgs) {
+export const action = routeHandler(async ({ request }: Route.ActionArgs) => {
   const body = await request.json();
-  await createTransaction(body);
+  await createTransaction(body, request);
   return null;
-}
+});
 
 export default function TransactionsPage() {
   const { transactions } = useLoaderData<typeof loader>();
@@ -425,9 +431,9 @@ transactionsRouter POST /
         └── provide(AppLayer + requestLayer) → Effect.runPromiseExit
               │
               ├── Success        → res.json(value)            200
-              ├── ValidationError → res.status(400).json(...)
-              ├── NotFoundError  → res.status(404).json(...)
-              └── Defect         → next(err)                  500
+              ├── ValidationError → { error: { code, requestId } } 400
+              ├── NotFoundError  → { error: { code, requestId } } 404
+              └── Defect         → { error: { code, requestId } } 500
 ```
 
 ---
@@ -450,6 +456,8 @@ transactionsRouter POST /
 
 ### Frontend
 
+- [ ] Configurar `VITE_API_URL` cuando el API no esté en `http://localhost:3000`
+- [ ] Configurar `WEB_ORIGIN` en el API cuando el frontend no esté en `http://localhost:5173`
 - [ ] `apps/web/app/modules/{module}/{module}.api.ts` — fetch + decode con Schema
 - [ ] `apps/web/app/modules/{module}/components/*.tsx` — componentes presentacionales
 - [ ] `apps/web/app/routes/{module}.tsx` — loader + action + page
@@ -506,3 +514,12 @@ import { MyError } from "@finex/shared/{module}/{module}.errors.js";
 ```
 
 > **Nunca** uses `/src/` en imports de `@finex/shared`. Si añades un archivo nuevo, ejecuta `pnpm build` en `packages/shared`.
+
+### Centralized HTTP error handling
+
+- Set `VITE_API_URL` to the trusted API base URL. A pathname is supported: with `VITE_API_URL=https://host/api`, the module path `/transactions` resolves to `https://host/api/transactions`.
+- `http` uses `credentials: "include"` and forwards an incoming SSR `Cookie` only to the configured API origin. Cross-origin target URLs are rejected before a request is sent.
+- API modules never redirect or render UI, and they never handle 401 individually. `http` normalizes HTTP, network (`503 NetworkError`), and malformed successful JSON (`502 InvalidJsonResponse`) failures as `ApiError`.
+- `routeHandler` owns navigation policy: it redirects 401 failures to `/login` and converts every other `ApiError` into a route error for the `ErrorBoundary`.
+- Non-success responses retain their HTTP status. If their body does not match the shared `{ error: { code: string, requestId: string } }` schema, `http` uses the safe `HttpError` code and does not expose the response body.
+- Validation errors that belong beside a form may be caught locally before they reach the boundary.

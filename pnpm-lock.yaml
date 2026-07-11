@@ -261,12 +261,18 @@ importers:
 
   apps/web:
     dependencies:
+      '@finex/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@react-router/node':
         specifier: 7.16.0
         version: 7.16.0(react-router@7.16.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(typescript@5.9.3)
       '@react-router/serve':
         specifier: 7.16.0
         version: 7.16.0(react-router@7.16.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(typescript@5.9.3)
+      effect:
+        specifier: ^3.21.2
+        version: 3.21.2
       isbot:
         specifier: ^5.1.36
         version: 5.1.42
@@ -301,6 +307,9 @@ importers:
       tailwindcss:
         specifier: ^4.2.2
         version: 4.3.1
+      tsx:
+        specifier: ^4.22.3
+        version: 4.22.3
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

@@ -1,13 +1,16 @@
 import cors from "cors";
 import express from "express";
+import { createCorsOptions } from "./config/cors.js";
+import { env } from "./config/env.js";
 import { authMiddleware } from "./middleware/auth.middleware.js";
+import { errorMiddleware } from "./middleware/error.middleware.js";
 import { authRouter } from "./modules/auth/auth.handlers.js";
 import { usersRouter } from "./modules/users/users.router.js";
 
 export function createApp() {
   const app = express();
 
-  app.use(cors());
+  app.use(cors(createCorsOptions(env.WEB_ORIGIN)));
   app.use(express.json());
   app.use(authMiddleware);
 
@@ -17,6 +20,8 @@ export function createApp() {
 
   app.use("/auth", authRouter);
   app.use("/users", usersRouter);
+
+  app.use(errorMiddleware);
 
   return app;
 }

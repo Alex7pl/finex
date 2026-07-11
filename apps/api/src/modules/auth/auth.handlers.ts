@@ -3,9 +3,15 @@ import { runPublic } from "@/runtime/run-request.js";
 import express from "express";
 import { login } from "./auth.service.js";
 
-export const authRouter = express.Router();
+export function createAuthRouter(run: typeof runPublic = runPublic) {
+  const router = express.Router();
 
-authRouter.get(
-  "/login",
-  makeHandler(runPublic)((req) => login(req.body)),
-);
+  router.get(
+    "/login",
+    makeHandler(run)((req) => login(req.body)),
+  );
+
+  return router;
+}
+
+export const authRouter = createAuthRouter();
