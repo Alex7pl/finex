@@ -11,8 +11,14 @@ export type AccessTokenPayload = {
 export type RefreshTokenPayload = {
   sub: string;
   familyId: string;
+  jti: string;
   tokenType: "refresh";
 };
+
+export type RefreshTokenVerification =
+  | { status: "valid"; payload: RefreshTokenPayload }
+  | { status: "expired"; payload: RefreshTokenPayload }
+  | { status: "invalid" };
 
 const algorithm = "HS256" as const;
 
@@ -57,6 +63,7 @@ export function createRefreshToken(input: { user_id: string; family_id: string }
   const payload = {
     sub: input.user_id,
     familyId: input.family_id,
+    jti: crypto.randomUUID(),
     tokenType: "refresh" as const,
   };
   return jwt.sign(payload satisfies RefreshTokenPayload, env.JWT_REFRESH_SECRET, {
@@ -68,6 +75,21 @@ export function createRefreshToken(input: { user_id: string; family_id: string }
 }
 
 export function verifyRefreshToken(token: string): RefreshTokenPayload | null {
+  const result = inspectRefreshToken(token);
+  return result.status === "valid" ? result.payload : null;
+}
+
+function isRefreshPayload(payload: string | jwt.JwtPayload): payload is jwt.JwtPayload & RefreshTokenPayload {
+  return (
+    typeof payload === "object" &&
+    typeof payload.sub === "string" &&
+    typeof payload.familyId === "string" &&
+    typeof payload.jti === "string" &&
+    payload.tokenType === "refresh"
+  );
+}
+
+export function inspectRefreshToken(token: string): RefreshTokenVerification {
   try {
     const payload = jwt.verify(token, env.JWT_REFRESH_SECRET, {
       algorithms: [algorithm],
@@ -75,18 +97,24 @@ export function verifyRefreshToken(token: string): RefreshTokenPayload | null {
       audience: env.JWT_AUDIENCE,
     });
 
-    if (
-      typeof payload === "object" &&
-      typeof payload.sub === "string" &&
-      typeof payload.familyId === "string" &&
-      payload.tokenType === "refresh"
-    ) {
-      return payload as RefreshTokenPayload;
+    return isRefreshPayload(payload)
+      ? { status: "valid", payload }
+      : { status: "invalid" };
+  } catch (error) {
+    if (!(error instanceof jwt.TokenExpiredError)) return { status: "invalid" };
+    try {
+      const payload = jwt.verify(token, env.JWT_REFRESH_SECRET, {
+        algorithms: [algorithm],
+        issuer: env.JWT_ISSUER,
+        audience: env.JWT_AUDIENCE,
+        ignoreExpiration: true,
+      });
+      return isRefreshPayload(payload)
+        ? { status: "expired", payload }
+        : { status: "invalid" };
+    } catch {
+      return { status: "invalid" };
     }
-
-    return null;
-  } catch {
-    return null;
   }
 }
 

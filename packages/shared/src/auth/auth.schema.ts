@@ -8,6 +8,8 @@ export class LoginInput extends Schema.Class<LoginInput>("LoginInput")({
 export class LoginResponse extends Schema.Class<LoginResponse>("LoginResponse")({
   id: Schema.String,
   email: Schema.String,
-  accessToken: Schema.String,
-  refreshToken: Schema.String,
+}) {}
+
+export class RefreshResponse extends Schema.Class<RefreshResponse>("RefreshResponse")({
+  success: Schema.Literal(true),
 }) {}

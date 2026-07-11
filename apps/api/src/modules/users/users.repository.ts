@@ -12,5 +12,9 @@ export class UserRepository extends Context.Tag("UserRepository")<
       } | null,
       DatabaseError
     >;
+    findUserById: (id: string) => Effect.Effect<
+      { id: string; email: string; passsword: string } | null,
+      DatabaseError
+    >;
   }
 >() {}

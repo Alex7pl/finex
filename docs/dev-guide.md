@@ -521,5 +521,6 @@ import { MyError } from "@finex/shared/{module}/{module}.errors.js";
 - `http` uses `credentials: "include"` and forwards an incoming SSR `Cookie` only to the configured API origin. Cross-origin target URLs are rejected before a request is sent.
 - API modules never redirect or render UI, and they never handle 401 individually. `http` normalizes HTTP, network (`503 NetworkError`), and malformed successful JSON (`502 InvalidJsonResponse`) failures as `ApiError`.
 - `routeHandler` owns navigation policy: it redirects 401 failures to `/login` and converts every other `ApiError` into a route error for the `ErrorBoundary`.
+- Browser requests may perform one refresh and retry through the shared HTTP client. SSR nested fetches intentionally do not refresh because an internal API `Set-Cookie` response cannot be propagated to the browser by the current abstraction; SSR therefore exposes the final 401 to `routeHandler` for login policy.
 - Non-success responses retain their HTTP status. If their body does not match the shared `{ error: { code: string, requestId: string } }` schema, `http` uses the safe `HttpError` code and does not expose the response body.
 - Validation errors that belong beside a form may be caught locally before they reach the boundary.

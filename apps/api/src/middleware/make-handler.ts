@@ -43,7 +43,11 @@ function writeError(
   next(Cause.squash(cause));
 }
 
-type HandlerCtx = { requestId: string; user: AuthenticatedUser | null };
+type HandlerCtx = {
+  requestId: string;
+  user: AuthenticatedUser | null;
+  response: Response;
+};
 
 type RunFn = typeof runPublic | typeof runProtected;
 
@@ -60,6 +64,7 @@ export function makeHandler(run: RunFn) {
       const ctx: HandlerCtx = {
         requestId: res.locals.requestId,
         user: res.locals.user,
+        response: res,
       };
 
       const program = handler(req, ctx);

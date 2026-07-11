@@ -57,6 +57,7 @@ export function createHttp({
   isServer = typeof window === "undefined",
 }: HttpClientOptions) {
   const apiOrigin = new URL(apiUrl).origin;
+  let refreshInFlight: Promise<void> | null = null;
 
   return async function http<T>(
     path: string,
@@ -80,16 +81,49 @@ export function createHttp({
       if (cookie) headers.set("cookie", cookie);
     }
 
-    let response: Response;
-    try {
-      response = await fetchImpl(url, {
-        ...init,
-        body: body === undefined ? undefined : JSON.stringify(body),
-        credentials: "include",
-        headers,
-      });
-    } catch {
-      throw new ApiError(503, "NetworkError");
+    const requestInit: RequestInit = {
+      ...init,
+      body: body === undefined ? undefined : JSON.stringify(body),
+      credentials: "include",
+      headers,
+    };
+
+    const send = async (requestUrl: URL, requestOptions: RequestInit) => {
+      try {
+        return await fetchImpl(requestUrl, requestOptions);
+      } catch {
+        throw new ApiError(503, "NetworkError");
+      }
+    };
+
+    let response = await send(url, requestInit);
+
+    const refreshUrl = resolveApiUrl("/auth/refresh", apiUrl);
+    if (
+      response.status === 401 &&
+      !isServer &&
+      url.href !== refreshUrl.href
+    ) {
+      if (!refreshInFlight) {
+        refreshInFlight = (async () => {
+          const refreshResponse = await send(refreshUrl, {
+            method: "POST",
+            credentials: "include",
+          });
+          if (!refreshResponse.ok) {
+            const payload = await readError(refreshResponse);
+            throw new ApiError(
+              refreshResponse.status,
+              payload?.error.code || "HttpError",
+              payload?.error.requestId,
+            );
+          }
+        })().finally(() => {
+          refreshInFlight = null;
+        });
+      }
+      await refreshInFlight;
+      response = await send(url, requestInit);
     }
 
     if (!response.ok) {

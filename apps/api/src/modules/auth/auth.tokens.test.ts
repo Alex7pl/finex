@@ -128,6 +128,7 @@ test("rejects malformed, expired, mis-signed, and invalid refresh tokens", () =>
   const claims = {
     sub: "8eb5a286-0d46-4f0e-a93f-f1681a6cb021",
     familyId: "846dd67f-277a-4373-bf11-26fbf8bbdcf4",
+    jti: "refresh-token-id",
     tokenType: "refresh",
   };
   const secret = process.env.JWT_REFRESH_SECRET!;
