@@ -13,7 +13,7 @@ process.env.JWT_AUDIENCE = "finex-test-api";
 process.env.JWT_ACCESS_EXPIRES_IN_SECONDS = "900";
 process.env.JWT_REFRESH_EXPIRES_IN_SECONDS = "604800";
 
-const [{ login, refresh }, { AuthRepository }, { createRefreshToken, hashRefreshToken }, { UserRepository }] =
+const [{ login, refresh, register }, { AuthRepository }, { createRefreshToken, hashRefreshToken }, { UserRepository }] =
   await Promise.all([
     import("./auth.service.js"),
     import("./auth.repository.js"),
@@ -24,12 +24,14 @@ const [{ login, refresh }, { AuthRepository }, { createRefreshToken, hashRefresh
 const user = {
   id: "8eb5a286-0d46-4f0e-a93f-f1681a6cb021",
   email: "user@test.dev",
-  passsword: "plain-text-password",
+  username: "Test user",
+  password: "plain-text-password",
 };
 
 const userRepository = {
   findUser: () => Effect.succeed(user),
   findUserById: () => Effect.succeed(user),
+  createUser: () => Effect.succeed(user),
 };
 
 function authRepository(overrides: Partial<{
@@ -49,7 +51,7 @@ function authRepository(overrides: Partial<{
 
 test("persists the refresh token hash before returning the login response", async () => {
   let persisted: RefreshTokenRecord | undefined;
-  const program = login({ email: user.email, password: user.passsword }).pipe(
+  const program = login({ email: user.email, password: user.password }).pipe(
     Effect.provideService(UserRepository, userRepository),
     Effect.provideService(AuthRepository, authRepository({
       saveRefreshToken: (record) => Effect.sync(() => void (persisted = record)),
@@ -78,7 +80,7 @@ test("persists the refresh token hash before returning the login response", asyn
 
 test("fails login without returning tokens when refresh persistence fails", async () => {
   const databaseError = new DatabaseError({ message: "insert failed" });
-  const program = login({ email: user.email, password: user.passsword }).pipe(
+  const program = login({ email: user.email, password: user.password }).pipe(
     Effect.provideService(UserRepository, userRepository),
     Effect.provideService(AuthRepository, authRepository({
       saveRefreshToken: () => Effect.fail(databaseError),
@@ -89,6 +91,34 @@ test("fails login without returning tokens when refresh persistence fails", asyn
 
   assert.equal(result._tag, "Left");
   if (result._tag === "Left") assert.equal(result.left, databaseError);
+});
+
+test("register creates a hashed user and persists a refresh token", async () => {
+  let createdPassword = "";
+  let persisted: RefreshTokenRecord | undefined;
+  const program = register({
+    username: user.username,
+    email: user.email.toUpperCase(),
+    password: "StrongPass2026",
+  }).pipe(
+    Effect.provideService(UserRepository, {
+      ...userRepository,
+      createUser: (input) => {
+        createdPassword = input.password;
+        return Effect.succeed({ ...user, email: input.email, username: input.username, password: input.password });
+      },
+    }),
+    Effect.provideService(AuthRepository, authRepository({
+      saveRefreshToken: (record) => Effect.sync(() => void (persisted = record)),
+    })),
+  );
+
+  const response = await Effect.runPromise(program);
+  assert.equal(response.body.email, user.email);
+  assert.equal(response.body.username, user.username);
+  assert.match(createdPassword, /^scrypt\$/);
+  assert.notEqual(createdPassword, "StrongPass2026");
+  assert.equal(persisted?.userId, user.id);
 });
 
 test("rotates a valid refresh token in the same family", async () => {

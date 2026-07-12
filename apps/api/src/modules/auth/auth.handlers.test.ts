@@ -27,7 +27,8 @@ const [{ createAuthRouter }, { createRefreshToken, hashRefreshToken }] = await P
 const user = {
   id: "8eb5a286-0d46-4f0e-a93f-f1681a6cb021",
   email: "user@test.dev",
-  passsword: "plain-text-password",
+  username: "Test user",
+  password: "plain-text-password",
 };
 
 type AuthRepositoryService = typeof AuthRepository.Service;
@@ -43,7 +44,7 @@ function repository(overrides: Partial<AuthRepositoryService> = {}): AuthReposit
 }
 
 async function requestAuth(input: {
-  path: "/auth/login" | "/auth/refresh";
+  path: "/auth/login" | "/auth/register" | "/auth/refresh";
   repository?: AuthRepositoryService;
   cookie?: string;
   origin?: string;
@@ -54,6 +55,7 @@ async function requestAuth(input: {
       Effect.provideService(UserRepository, {
         findUser: () => Effect.succeed(user),
         findUserById: () => Effect.succeed(user),
+        createUser: () => Effect.succeed(user),
       }),
       Effect.provideService(AuthRepository, input.repository ?? repository()),
     )) as typeof runPublic;
@@ -75,8 +77,10 @@ async function requestAuth(input: {
     });
     const { port } = server.address() as AddressInfo;
     const body = input.path.endsWith("login")
-      ? JSON.stringify({ email: user.email, password: user.passsword })
-      : "";
+      ? JSON.stringify({ email: user.email, password: user.password })
+      : input.path.endsWith("register")
+        ? JSON.stringify({ username: user.username, email: user.email, password: "StrongPass2026" })
+        : "";
     const headers: Record<string, string | number> = {};
     if (body) {
       headers["content-type"] = "application/json";
@@ -139,6 +143,18 @@ test("login returns only non-sensitive data and root-scoped auth cookies", async
   assert.deepEqual(response.body, { id: user.id, email: user.email });
   assert.equal("accessToken" in (response.body as object), false);
   assert.equal("refreshToken" in (response.body as object), false);
+  assertAuthCookies(response.cookies);
+});
+
+test("register returns only public profile data and starts a secure session", async () => {
+  const response = await requestAuth({
+    path: "/auth/register",
+    origin: "https://web.example.com",
+  });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(response.body, { id: user.id, email: user.email, username: user.username });
+  assert.equal("password" in (response.body as object), false);
   assertAuthCookies(response.cookies);
 });
 

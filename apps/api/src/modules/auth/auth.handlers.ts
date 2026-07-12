@@ -5,7 +5,7 @@ import express from "express";
 import { UnauthorizedError } from "@finex/shared/errors.js";
 import { Effect } from "effect";
 import { clearAuthCookies, setAuthCookies } from "./auth.cookies.js";
-import { login, refresh } from "./auth.service.js";
+import { login, refresh, register } from "./auth.service.js";
 
 function getCookie(cookieHeader: string, name: string): string | null {
   for (const cookie of cookieHeader.split(";")) {
@@ -29,6 +29,19 @@ export function createAuthRouter(run: typeof runPublic = runPublic) {
     requireAllowedOrigin,
     makeHandler(run)((req, ctx) =>
       login(req.body).pipe(
+        Effect.map((result) => {
+          setAuthCookies(ctx.response, result);
+          return result.body;
+        }),
+      ),
+    ),
+  );
+
+  router.post(
+    "/register",
+    requireAllowedOrigin,
+    makeHandler(run)((req, ctx) =>
+      register(req.body).pipe(
         Effect.map((result) => {
           setAuthCookies(ctx.response, result);
           return result.body;

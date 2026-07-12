@@ -1,20 +1,29 @@
 import { DatabaseError } from "@/shared/errors.js";
+import { UserAlreadyExists } from "@finex/shared/auth/auth.errors.js";
 import { Context, Effect } from "effect";
+
+export interface UserRecord {
+  id: string;
+  email: string;
+  username: string;
+  password: string;
+}
 
 export class UserRepository extends Context.Tag("UserRepository")<
   UserRepository,
   {
     findUser: (email: string) => Effect.Effect<
-      {
-        id: string;
-        email: string;
-        passsword: string;
-      } | null,
+      UserRecord | null,
       DatabaseError
     >;
     findUserById: (id: string) => Effect.Effect<
-      { id: string; email: string; passsword: string } | null,
+      UserRecord | null,
       DatabaseError
     >;
+    createUser: (input: {
+      email: string;
+      username: string;
+      password: string;
+    }) => Effect.Effect<UserRecord, UserAlreadyExists | DatabaseError>;
   }
 >() {}

@@ -5,17 +5,18 @@ import {
   ValidationError,
   type HttpErrorResponse,
 } from "@finex/shared/errors.js";
-import { UserNotFound } from "@finex/shared/auth/auth.errors.js";
+import { UserAlreadyExists, UserNotFound } from "@finex/shared/auth/auth.errors.js";
 import type { AuthenticatedUser } from "../runtime/request-context.js";
 import { DatabaseError } from "../shared/errors.js";
 import { runPublic, runProtected, type RequestData } from "../runtime/run-request.js";
 
-type AppError = UnauthorizedError | ValidationError | UserNotFound | DatabaseError;
+type AppError = UnauthorizedError | ValidationError | UserNotFound | UserAlreadyExists | DatabaseError;
 
 const STATUS: Record<AppError["_tag"], number> = {
   UnauthorizedError: 401,
   ValidationError: 400,
   UserNotFound: 404,
+  UserAlreadyExists: 409,
   DatabaseError: 500,
 };
 

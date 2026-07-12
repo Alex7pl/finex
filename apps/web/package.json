@@ -6,7 +6,7 @@
     "build": "react-router build",
     "dev": "react-router dev",
     "pretest": "pnpm --filter @finex/shared build",
-    "test": "node ../../scripts/check-focused-tests.mjs app && tsx --test app/**/*.test.ts app/**/*.test.tsx",
+    "test": "node ../../scripts/check-focused-tests.mjs app && tsx --test app/**/*.test.ts app/**/**/*.test.ts app/**/*.test.tsx app/**/**/*.test.tsx",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc"
   },

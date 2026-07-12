@@ -10,6 +10,18 @@ export class LoginResponse extends Schema.Class<LoginResponse>("LoginResponse")(
   email: Schema.String,
 }) {}
 
+export class RegisterInput extends Schema.Class<RegisterInput>("RegisterInput")({
+  username: Schema.String,
+  email: Schema.String,
+  password: Schema.String,
+}) {}
+
+export class RegisterResponse extends Schema.Class<RegisterResponse>("RegisterResponse")({
+  id: Schema.String,
+  email: Schema.String,
+  username: Schema.String,
+}) {}
+
 export class RefreshResponse extends Schema.Class<RefreshResponse>("RefreshResponse")({
   success: Schema.Literal(true),
 }) {}

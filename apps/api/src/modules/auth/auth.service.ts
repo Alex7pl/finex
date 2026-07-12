@@ -1,11 +1,12 @@
 import crypto from "node:crypto";
 import jwt from "jsonwebtoken";
 import { DatabaseError } from "@/shared/errors.js";
-import { UserNotFound } from "@finex/shared/auth/auth.errors.js";
-import { LoginInput, LoginResponse, RefreshResponse } from "@finex/shared/auth/auth.schema.js";
-import { UnauthorizedError } from "@finex/shared/errors.js";
+import { UserAlreadyExists, UserNotFound } from "@finex/shared/auth/auth.errors.js";
+import { LoginInput, LoginResponse, RefreshResponse, RegisterInput, RegisterResponse } from "@finex/shared/auth/auth.schema.js";
+import { UnauthorizedError, ValidationError } from "@finex/shared/errors.js";
 import { Effect } from "effect";
 import { UserRepository } from "../users/users.repository.js";
+import { hashPassword, verifyPassword } from "./auth.password.js";
 import { AuthRepository } from "./auth.repository.js";
 import {
   createAccessToken,
@@ -72,7 +73,7 @@ export function login(
       );
     }
 
-    if (user.passsword !== input.password) {
+    if (!(yield* Effect.promise(() => verifyPassword(input.password, user.password)))) {
       return yield* Effect.fail(
         new UserNotFound({ message: "User not found" }),
       );
@@ -89,6 +90,42 @@ export function login(
 
     return {
       body: new LoginResponse({ id: user.id, email: user.email }),
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    };
+  });
+}
+
+export function register(
+  input: RegisterInput,
+): Effect.Effect<
+  AuthResult<RegisterResponse>,
+  ValidationError | UserAlreadyExists | DatabaseError,
+  UserRepository | AuthRepository
+> {
+  return Effect.gen(function* () {
+    const email = input.email?.trim().toLowerCase();
+    const username = input.username?.trim();
+    const issues: Array<{ path: string[]; message: string }> = [];
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) issues.push({ path: ["email"], message: "Invalid email" });
+    if (!username || username.length < 2 || username.length > 40) issues.push({ path: ["username"], message: "Invalid username" });
+    if (!input.password || input.password.length < 8 || !/[A-Z]/.test(input.password) || !/\d/.test(input.password)) issues.push({ path: ["password"], message: "Weak password" });
+    if (issues.length) return yield* Effect.fail(new ValidationError({ message: "Invalid registration", issues }));
+
+    const userRepo = yield* UserRepository;
+    const authRepo = yield* AuthRepository;
+    const password = yield* Effect.promise(() => hashPassword(input.password));
+    const user = yield* userRepo.createUser({ email, username, password });
+    const tokens = createTokens(user.email, user.id);
+    yield* authRepo.saveRefreshToken({
+      userId: user.id,
+      familyId: tokens.familyId,
+      tokenHash: hashRefreshToken(tokens.refreshToken),
+      expiresAt: tokens.refreshExpiresAt,
+    });
+
+    return {
+      body: new RegisterResponse({ id: user.id, email: user.email, username: user.username }),
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
     };
