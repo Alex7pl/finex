@@ -1,38 +1,157 @@
 import { Eye, EyeOff, LoaderCircle } from "lucide-react";
-import { useId, useState, type InputHTMLAttributes, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useId,
+  useState,
+  type HTMLAttributes,
+  type InputHTMLAttributes,
+  type LabelHTMLAttributes,
+  type ReactNode,
+} from "react";
 
-type AuthFieldProps = InputHTMLAttributes<HTMLInputElement> & {
-  label: string;
-  error?: string;
-  hint?: ReactNode;
+interface AuthFieldContextValue {
+  controlId: string;
+  descriptionId: string;
+  errorId: string;
+  description?: ReactNode;
+  error?: ReactNode;
+}
+
+const AuthFieldContext = createContext<AuthFieldContextValue | null>(null);
+
+function useAuthField() {
+  const field = useContext(AuthFieldContext);
+  if (!field) {
+    throw new Error("AuthField parts must be rendered inside AuthField.Root.");
+  }
+  return field;
+}
+
+type AuthFieldRootProps = Omit<HTMLAttributes<HTMLDivElement>, "id"> & {
+  id?: string;
+  description?: ReactNode;
+  error?: ReactNode;
 };
 
-export function AuthField({ label, error, hint, id: providedId, className = "", ...props }: AuthFieldProps) {
+function AuthFieldRoot({
+  id: providedId,
+  description,
+  error,
+  children,
+  ...props
+}: AuthFieldRootProps) {
   const generatedId = useId();
-  const id = providedId ?? generatedId;
-  const describedBy = [error ? `${id}-error` : "", hint ? `${id}-hint` : ""].filter(Boolean).join(" ") || undefined;
+  const controlId = providedId ?? generatedId;
+  const field = {
+    controlId,
+    descriptionId: `${controlId}-description`,
+    errorId: `${controlId}-error`,
+    description,
+    error,
+  };
 
   return (
-    <div>
-      <label htmlFor={id} className="mb-2 block text-sm font-medium text-surface-heading">{label}</label>
-      <input
-        {...props}
-        id={id}
-        aria-invalid={Boolean(error)}
-        aria-describedby={describedBy}
-        className={`h-12 w-full rounded-2xl border bg-white px-4 text-base text-surface-heading outline-none transition placeholder:text-muted/55 focus:border-primary focus:ring-3 focus:ring-primary/10 ${error ? "border-red-400" : "border-border"} ${className}`}
-      />
-      {hint ? <div id={`${id}-hint`} className="mt-2">{hint}</div> : null}
-      {error ? <p id={`${id}-error`} className="mt-2 text-sm text-red-700">{error}</p> : null}
+    <AuthFieldContext value={field}>
+      <div {...props}>{children}</div>
+    </AuthFieldContext>
+  );
+}
+
+function AuthFieldLabel({
+  className = "",
+  ...props
+}: LabelHTMLAttributes<HTMLLabelElement>) {
+  const { controlId } = useAuthField();
+  return (
+    <label
+      {...props}
+      htmlFor={controlId}
+      className={`mb-2 block text-sm font-medium text-surface-heading ${className}`}
+    />
+  );
+}
+
+function AuthFieldControl({
+  className = "",
+  ...props
+}: Omit<InputHTMLAttributes<HTMLInputElement>, "id">) {
+  const { controlId, description, descriptionId, error, errorId } =
+    useAuthField();
+  const describedBy = [error ? errorId : "", description ? descriptionId : ""]
+    .filter(Boolean)
+    .join(" ") || undefined;
+
+  return (
+    <input
+      {...props}
+      id={controlId}
+      aria-invalid={Boolean(error)}
+      aria-describedby={describedBy}
+      className={`h-12 w-full rounded-2xl border bg-white px-4 text-base text-surface-heading outline-none transition placeholder:text-muted/55 focus:border-primary focus:ring-3 focus:ring-primary/10 ${error ? "border-red-400" : "border-border"} ${className}`}
+    />
+  );
+}
+
+function AuthFieldDescription(props: HTMLAttributes<HTMLDivElement>) {
+  const { description, descriptionId } = useAuthField();
+  if (!description) return null;
+  return (
+    <div {...props} id={descriptionId} className={`mt-2 ${props.className ?? ""}`}>
+      {description}
     </div>
   );
 }
 
-export function PasswordField(props: Omit<AuthFieldProps, "type">) {
+function AuthFieldError(props: HTMLAttributes<HTMLParagraphElement>) {
+  const { error, errorId } = useAuthField();
+  if (!error) return null;
+  return (
+    <p
+      {...props}
+      id={errorId}
+      className={`mt-2 text-sm text-red-700 ${props.className ?? ""}`}
+    >
+      {error}
+    </p>
+  );
+}
+
+export const AuthField = {
+  Root: AuthFieldRoot,
+  Label: AuthFieldLabel,
+  Control: AuthFieldControl,
+  Description: AuthFieldDescription,
+  Error: AuthFieldError,
+};
+
+type PasswordFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, "type"> & {
+  label: ReactNode;
+  error?: string;
+  hint?: ReactNode;
+};
+
+export function PasswordField({
+  label,
+  error,
+  hint,
+  id,
+  className = "",
+  ...props
+}: PasswordFieldProps) {
   const [visible, setVisible] = useState(false);
   return (
     <div className="relative">
-      <AuthField {...props} type={visible ? "text" : "password"} className={`${props.className ?? ""} pr-12`} />
+      <AuthField.Root id={id} error={error} description={hint}>
+        <AuthField.Label>{label}</AuthField.Label>
+        <AuthField.Control
+          {...props}
+          type={visible ? "text" : "password"}
+          className={`${className} pr-12`}
+        />
+        <AuthField.Description />
+        <AuthField.Error />
+      </AuthField.Root>
       <button
         type="button"
         onClick={() => setVisible((value) => !value)}

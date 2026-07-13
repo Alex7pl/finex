@@ -34,7 +34,11 @@ export function LoginForm({ feedback, pending, onSubmit, onSwitch }: LoginFormPr
   return (
     <form ref={formRef} onSubmit={submit} noValidate className="space-y-5">
       <FormAlert>{feedback?.formError}</FormAlert>
-      <AuthField label="Correo electrónico" name="email" type="email" autoComplete="email" inputMode="email" placeholder="tu@correo.com" error={feedback?.fieldErrors.email} />
+      <AuthField.Root error={feedback?.fieldErrors.email}>
+        <AuthField.Label>Correo electrónico</AuthField.Label>
+        <AuthField.Control name="email" type="email" autoComplete="email" inputMode="email" placeholder="tu@correo.com" />
+        <AuthField.Error />
+      </AuthField.Root>
       <div>
         <div className="mb-2 flex items-center justify-end">
           <a href="mailto:soporte@finex.app?subject=Recuperar%20contraseña" className="text-sm font-medium text-primary transition hover:text-primary-hover">¿Has olvidado tu contraseña?</a>
@@ -81,8 +85,16 @@ export function RegisterForm({ feedback, pending, onSubmit }: RegisterFormProps)
     <form ref={formRef} onSubmit={submit} noValidate className="space-y-3.5">
       <FormAlert>{feedback?.formError}</FormAlert>
       <div className="grid gap-3.5 sm:grid-cols-2">
-        <AuthField label="Nombre" name="username" autoComplete="name" placeholder="Tu nombre" error={feedback?.fieldErrors.username} />
-        <AuthField label="Correo electrónico" name="email" type="email" autoComplete="email" inputMode="email" placeholder="tu@correo.com" error={feedback?.fieldErrors.email} />
+        <AuthField.Root error={feedback?.fieldErrors.username}>
+          <AuthField.Label>Nombre</AuthField.Label>
+          <AuthField.Control name="username" autoComplete="name" placeholder="Tu nombre" />
+          <AuthField.Error />
+        </AuthField.Root>
+        <AuthField.Root error={feedback?.fieldErrors.email}>
+          <AuthField.Label>Correo electrónico</AuthField.Label>
+          <AuthField.Control name="email" type="email" autoComplete="email" inputMode="email" placeholder="tu@correo.com" />
+          <AuthField.Error />
+        </AuthField.Root>
       </div>
       <PasswordField
         label="Contraseña"
