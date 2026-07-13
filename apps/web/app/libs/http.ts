@@ -22,7 +22,9 @@ export interface HttpOptions extends Omit<RequestInit, "body"> {
   request?: Request;
 }
 
-export function decodeHttpErrorResponse(value: unknown): HttpErrorResponseType | null {
+export function decodeHttpErrorResponse(
+  value: unknown,
+): HttpErrorResponseType | null {
   try {
     return Schema.decodeUnknownSync(HttpErrorResponse)(value);
   } catch {
@@ -30,7 +32,9 @@ export function decodeHttpErrorResponse(value: unknown): HttpErrorResponseType |
   }
 }
 
-async function readError(response: Response): Promise<HttpErrorResponseType | null> {
+async function readError(
+  response: Response,
+): Promise<HttpErrorResponseType | null> {
   try {
     const value: unknown = await response.json();
     return decodeHttpErrorResponse(value);
@@ -99,11 +103,7 @@ export function createHttp({
     let response = await send(url, requestInit);
 
     const refreshUrl = resolveApiUrl("/auth/refresh", apiUrl);
-    if (
-      response.status === 401 &&
-      !isServer &&
-      url.href !== refreshUrl.href
-    ) {
+    if (response.status === 401 && !isServer && url.href !== refreshUrl.href) {
       if (!refreshInFlight) {
         refreshInFlight = (async () => {
           const refreshResponse = await send(refreshUrl, {
@@ -128,11 +128,13 @@ export function createHttp({
 
     if (!response.ok) {
       const payload = await readError(response);
-      throw new ApiError(
+      const error = new ApiError(
         response.status,
         payload?.error.code || "HttpError",
         payload?.error.requestId,
       );
+
+      throw error;
     }
 
     if (response.status === 204) return undefined as T;

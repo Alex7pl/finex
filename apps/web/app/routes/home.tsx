@@ -1,8 +1,18 @@
 import { ApiError } from "@/libs/http.js";
+import { notify } from "@/libs/notifications.js";
 import { routeHandler } from "@/libs/route-handler.js";
 import { login, register } from "@/modules/auth/auth.api.js";
-import type { AuthActionData, AuthActionFailure, AuthMode, AuthSubmission } from "@/modules/auth/auth.types.js";
-import { hasErrors, validateLogin, validateRegister } from "@/modules/auth/auth.validation.js";
+import type {
+  AuthActionData,
+  AuthActionFailure,
+  AuthMode,
+  AuthSubmission,
+} from "@/modules/auth/auth.types.js";
+import {
+  hasErrors,
+  validateLogin,
+  validateRegister,
+} from "@/modules/auth/auth.validation.js";
 import { AuthPanel } from "@/modules/auth/components/AuthPanel.js";
 import { HomePage } from "@/modules/home/components/HomePage.js";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -18,7 +28,10 @@ function readString(data: FormData, key: string): string {
   return typeof value === "string" ? value : "";
 }
 
-function localAuthError(error: unknown, intent: AuthMode): AuthActionFailure | null {
+function localAuthError(
+  error: unknown,
+  intent: AuthMode,
+): AuthActionFailure | null {
   if (!(error instanceof ApiError)) return null;
 
   if (intent === "login" && error.code === "UserNotFound") {
@@ -40,55 +53,57 @@ function localAuthError(error: unknown, intent: AuthMode): AuthActionFailure | n
   return null;
 }
 
-export const clientAction = routeHandler(async ({ request }: Route.ClientActionArgs): Promise<AuthActionData> => {
-  const data = await request.formData();
-  const intent = readString(data, "intent");
+export const clientAction = routeHandler(
+  async ({ request }: Route.ClientActionArgs): Promise<AuthActionData> => {
+    const data = await request.formData();
+    const intent = readString(data, "intent");
 
-  if (intent === "login") {
-    const input = {
-      email: readString(data, "email").trim().toLowerCase(),
-      password: readString(data, "password"),
-    };
-    const fieldErrors = validateLogin(input);
-    if (hasErrors(fieldErrors)) return { ok: false, intent, fieldErrors };
+    if (intent === "login") {
+      const input = {
+        email: readString(data, "email").trim().toLowerCase(),
+        password: readString(data, "password"),
+      };
+      const fieldErrors = validateLogin(input);
+      if (hasErrors(fieldErrors)) return { ok: false, intent, fieldErrors };
 
-    try {
-      await login(input, request);
-      return { ok: true, intent };
-    } catch (error) {
-      const localError = localAuthError(error, intent);
-      if (localError) return localError;
-      throw error;
+      try {
+        await login(input, request);
+        return { ok: true, intent };
+      } catch (error) {
+        const localError = localAuthError(error, intent);
+        if (localError) return localError;
+        throw error;
+      }
     }
-  }
 
-  if (intent === "register") {
-    const input = {
-      username: readString(data, "username").trim(),
-      email: readString(data, "email").trim().toLowerCase(),
-      password: readString(data, "password"),
-      terms: readString(data, "terms") === "true",
-    };
-    const fieldErrors = validateRegister(input);
-    if (hasErrors(fieldErrors)) return { ok: false, intent, fieldErrors };
+    if (intent === "register") {
+      const input = {
+        username: readString(data, "username").trim(),
+        email: readString(data, "email").trim().toLowerCase(),
+        password: readString(data, "password"),
+        terms: readString(data, "terms") === "true",
+      };
+      const fieldErrors = validateRegister(input);
+      if (hasErrors(fieldErrors)) return { ok: false, intent, fieldErrors };
 
-    try {
-      await register(input, request);
-      return { ok: true, intent };
-    } catch (error) {
-      const localError = localAuthError(error, intent);
-      if (localError) return localError;
-      throw error;
+      try {
+        await register(input, request);
+        return { ok: true, intent };
+      } catch (error) {
+        const localError = localAuthError(error, intent);
+        if (localError) return localError;
+        throw error;
+      }
     }
-  }
 
-  return {
-    ok: false,
-    intent: "login",
-    fieldErrors: {},
-    formError: "No hemos podido procesar la solicitud.",
-  };
-});
+    return {
+      ok: false,
+      intent: "login",
+      fieldErrors: {},
+      formError: "No hemos podido procesar la solicitud.",
+    };
+  },
+);
 
 export default function Home() {
   const fetcher = useFetcher<typeof clientAction>();
@@ -109,9 +124,10 @@ export default function Home() {
 
   function submitAuth(input: AuthSubmission) {
     setAuthFeedback(null);
-    const submission = input.intent === "register"
-      ? { ...input, terms: input.terms ? "true" : "false" }
-      : input;
+    const submission =
+      input.intent === "register"
+        ? { ...input, terms: input.terms ? "true" : "false" }
+        : input;
     fetcher.submit(submission, { method: "post" });
   }
 
@@ -122,7 +138,18 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (fetcher.data) setAuthFeedback(fetcher.data);
+    const result = fetcher.data;
+    if (!result) return;
+
+    setAuthFeedback(result);
+
+    if (result.ok) {
+      const message =
+        result.intent === "login"
+          ? "Sesión iniciada correctamente."
+          : "Cuenta creada. ¡Bienvenido a FineX!";
+      notify.success(message);
+    }
   }, [fetcher.data]);
 
   return (
@@ -130,16 +157,18 @@ export default function Home() {
       authOpen={authMode !== null}
       onLogin={(trigger) => openAuth("login", trigger)}
       onRegister={(trigger) => openAuth("register", trigger)}
-      authPanel={authMode ? (
-        <AuthPanel
-          mode={authMode}
-          feedback={authFeedback}
-          pending={fetcher.state !== "idle"}
-          onModeChange={changeAuthMode}
-          onSubmit={submitAuth}
-          onClose={closeAuth}
-        />
-      ) : null}
+      authPanel={
+        authMode ? (
+          <AuthPanel
+            mode={authMode}
+            feedback={authFeedback}
+            pending={fetcher.state !== "idle"}
+            onModeChange={changeAuthMode}
+            onSubmit={submitAuth}
+            onClose={closeAuth}
+          />
+        ) : null
+      }
     />
   );
 }

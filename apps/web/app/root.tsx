@@ -7,6 +7,7 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
+import { ToastContainer } from "@/components/ui/ToastContainer.js";
 import "./app.css";
 export { ErrorBoundary } from "./error-boundary.js";
 
@@ -42,5 +43,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+      <ToastContainer />
+    </>
+  );
 }

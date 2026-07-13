@@ -83,3 +83,34 @@ body {
     animation-duration: 1ms;
   }
 }
+
+@keyframes toast-enter-kf {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes toast-exit-kf {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(6px) scale(0.985); }
+}
+
+@keyframes toast-progress-kf {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+.toast-enter { animation: toast-enter-kf 240ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.toast-visible { opacity: 1; }
+.toast-exit { animation: toast-exit-kf 180ms cubic-bezier(0.4, 0, 1, 1) both; pointer-events: none; }
+.toast-progress { animation: toast-progress-kf linear both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-enter,
+  .toast-exit {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .toast-progress { animation: none; }
+}

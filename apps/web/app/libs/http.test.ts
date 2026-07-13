@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { ApiError, createHttp, decodeHttpErrorResponse, resolveApiUrl } from "./http.js";
+import { notify } from "./notifications.js";
 
 test("decodes only the shared HTTP error envelope", () => {
   assert.deepEqual(
@@ -229,4 +230,60 @@ test("does not auto-refresh during SSR because nested fetch cannot propagate Set
 
   await assert.rejects(http("/transactions", { request: new Request("https://web.example.com") }), { status: 401 });
   assert.equal(calls, 1);
+});
+
+test("calls notify.error for non-401 API errors", async (t) => {
+  const notifyErrorCalls: string[] = [];
+  const original = notify.error;
+  notify.error = t.mock.fn((msg: string) => { notifyErrorCalls.push(msg); return "mock-id"; });
+
+  const http = createHttp({
+    apiUrl: "https://example.com/api",
+    isServer: false,
+    fetchImpl: async () =>
+      Response.json(
+        { error: { code: "ServerError", requestId: "req-1" } },
+        { status: 500 },
+      ),
+  });
+
+  try {
+    await http("/transactions");
+  } catch {
+    // expected to throw
+  } finally {
+    notify.error = original;
+  }
+
+  assert.equal(notifyErrorCalls.length, 1);
+  assert.ok(notifyErrorCalls[0]?.includes("500"), `expected message to include status; got: ${notifyErrorCalls[0]}`);
+});
+
+test("does not call notify.error for 401 API errors", async (t) => {
+  const notifyErrorCalls: string[] = [];
+  const original = notify.error;
+  notify.error = t.mock.fn((msg: string) => { notifyErrorCalls.push(msg); return "mock-id"; });
+
+  const http = createHttp({
+    apiUrl: "https://example.com/api",
+    isServer: false,
+    fetchImpl: async (input) => {
+      // Return 401 for both original and retry requests
+      const path = new URL(input.toString()).pathname;
+      if (path.endsWith("/auth/refresh")) {
+        return Response.json({ error: { code: "UnauthorizedError", requestId: "1" } }, { status: 401 });
+      }
+      return Response.json({ error: { code: "UnauthorizedError", requestId: "1" } }, { status: 401 });
+    },
+  });
+
+  try {
+    await http("/transactions");
+  } catch {
+    // expected to throw
+  } finally {
+    notify.error = original;
+  }
+
+  assert.equal(notifyErrorCalls.length, 0, "notify.error must NOT be called for 401 errors");
 });
