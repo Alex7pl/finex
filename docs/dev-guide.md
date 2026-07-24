@@ -44,10 +44,15 @@ cd packages/shared && pnpm build
 ### Frontend (`apps/web/app/`)
 
 ```
-routes/{module}.tsx                   ← page: loader + action + componente
-modules/{module}/{module}.api.ts      ← fetch al API con validación de respuesta
-modules/{module}/components/*.tsx     ← componentes presentacionales
+routes/{module}.tsx                          ← orquesta loader/action y página
+modules/{module}/{module}.api.server.ts      ← BFF → API + validación del DTO
+modules/{module}/{module}.action.server.ts   ← caso de uso de formulario, si aplica
+modules/{module}/components/*.tsx            ← componentes presentacionales
 ```
+
+El frontend sigue la arquitectura BFF descrita en
+[`docs/frontend-architecture.md`](frontend-architecture.md). El navegador nunca
+llama directamente a Express.
 
 ---
 
@@ -305,33 +310,50 @@ app.use("/transactions", transactionsRouter);
 
 ## Frontend — paso a paso
 
-### 1. API client (`apps/web/app/modules/{module}/{module}.api.ts`)
+### 1. API client (`apps/web/app/modules/{module}/{module}.api.server.ts`)
 
-Usa el cliente HTTP centralizado y valida la respuesta con el mismo Schema del backend. El `Request` entrante es opcional y solo se usa durante SSR para reenviar la cookie al origen de API configurado.
+Usa el cliente BFF de servidor, valida la respuesta con el mismo Schema del
+backend y conserva los headers. El `Request` entrante es obligatorio porque
+transporta la sesión y el origen web.
 
 ```ts
 import { Schema } from "effect";
-import { http } from "../../libs/http.js";
+import { ApiError } from "../../libs/api-error.js";
+import { serverHttp } from "../../libs/http.server.js";
 import {
   CreateTransactionInput,
   TransactionDto,
 } from "@finex/shared/transactions/transactions.schema.js";
 
-export async function fetchTransactions(request?: Request): Promise<TransactionDto[]> {
-  const raw = await http<unknown>("/transactions", { request });
-  return Schema.decodeUnknownSync(Schema.Array(TransactionDto))(raw);
+export async function fetchTransactions(request: Request) {
+  const result = await serverHttp<unknown>("/transactions", { request });
+  try {
+    return {
+      data: Schema.decodeUnknownSync(Schema.Array(TransactionDto))(result.data),
+      headers: result.headers,
+    };
+  } catch {
+    throw new ApiError(502, "InvalidApiResponse", undefined, result.headers);
+  }
 }
 
 export async function createTransaction(
   input: typeof CreateTransactionInput.Type,
-  request?: Request,
-): Promise<TransactionDto> {
-  const raw = await http<unknown>("/transactions", {
+  request: Request,
+) {
+  const result = await serverHttp<unknown>("/transactions", {
     method: "POST",
     body: input,
     request,
   });
-  return Schema.decodeUnknownSync(TransactionDto)(raw);
+  try {
+    return {
+      data: Schema.decodeUnknownSync(TransactionDto)(result.data),
+      headers: result.headers,
+    };
+  } catch {
+    throw new ApiError(502, "InvalidApiResponse", undefined, result.headers);
+  }
 }
 ```
 
@@ -370,30 +392,35 @@ export function TransactionList({ transactions, onDelete }: Props) {
 
 ### 3. Route module (`apps/web/app/routes/{module}.tsx`)
 
-La page orquesta: llama al API en `loader`/`action`, pasa datos a componentes.
+La ruta orquesta, propaga headers y pasa datos validados a componentes. Las
+mutations usan `routeAction` para comprobar el origen antes de ejecutarse.
 
 ```tsx
-import { useLoaderData } from "react-router";
+import { data } from "react-router";
 import type { Route } from "./+types/{module}";
-import { fetchTransactions, createTransaction } from "../modules/transactions/transactions.api.js";
+import { fetchTransactions, createTransaction } from "../modules/transactions/transactions.api.server.js";
 import { TransactionList } from "../modules/transactions/components/TransactionList.js";
-import { routeHandler } from "../libs/route-handler.js";
+import { routeAction, routeHandler } from "../libs/route-handler.server.js";
 
-// Corre en servidor (SSR) o cliente según config de React Router
 export const loader = routeHandler(async ({ request }: Route.LoaderArgs) => {
-  const transactions = await fetchTransactions(request);
-  return { transactions };
+  const result = await fetchTransactions(request);
+  return data(
+    { transactions: result.data },
+    { headers: result.headers },
+  );
 });
 
-export const action = routeHandler(async ({ request }: Route.ActionArgs) => {
-  const body = await request.json();
-  await createTransaction(body, request);
-  return null;
+export const action = routeAction(async ({ request }: Route.ActionArgs) => {
+  const input = await parseTransactionForm(request);
+  const result = await createTransaction(input, request);
+  return data(
+    { transaction: result.data },
+    { headers: result.headers },
+  );
 });
 
-export default function TransactionsPage() {
-  const { transactions } = useLoaderData<typeof loader>();
-  return <TransactionList transactions={transactions} />;
+export default function TransactionsPage({ loaderData }: Route.ComponentProps) {
+  return <TransactionList transactions={loaderData.transactions} />;
 }
 ```
 
@@ -456,12 +483,15 @@ transactionsRouter POST /
 
 ### Frontend
 
-- [ ] Configurar `VITE_API_URL` cuando el API no esté en `http://localhost:3000`
+- [ ] Configurar `API_URL` en el BFF cuando el API no esté en `http://localhost:3000`
 - [ ] Configurar `WEB_ORIGIN` en el API cuando el frontend no esté en `http://localhost:5173`
-- [ ] `apps/web/app/modules/{module}/{module}.api.ts` — fetch + decode con Schema
+- [ ] `apps/web/app/modules/{module}/{module}.api.server.ts` — BFF + decode con Schema
+- [ ] `apps/web/app/modules/{module}/{module}.action.server.ts` — caso de uso, si aplica
 - [ ] `apps/web/app/modules/{module}/components/*.tsx` — componentes presentacionales
 - [ ] `apps/web/app/routes/{module}.tsx` — loader + action + page
 - [ ] `apps/web/app/routes.ts` — registrar la ruta
+- [ ] Propagar `result.headers` desde loader/action
+- [ ] Usar `routeAction` en toda mutation
 
 ---
 
@@ -517,10 +547,10 @@ import { MyError } from "@finex/shared/{module}/{module}.errors.js";
 
 ### Centralized HTTP error handling
 
-- Set `VITE_API_URL` to the trusted API base URL. A pathname is supported: with `VITE_API_URL=https://host/api`, the module path `/transactions` resolves to `https://host/api/transactions`.
-- `http` uses `credentials: "include"` and forwards an incoming SSR `Cookie` only to the configured API origin. Cross-origin target URLs are rejected before a request is sent.
-- API modules never redirect or render UI, and they never handle 401 individually. `http` normalizes HTTP, network (`503 NetworkError`), and malformed successful JSON (`502 InvalidJsonResponse`) failures as `ApiError`.
-- `routeHandler` owns navigation policy: it redirects 401 failures to `/login` and converts every other `ApiError` into a route error for the `ErrorBoundary`.
-- Browser requests may perform one refresh and retry through the shared HTTP client. SSR nested fetches intentionally do not refresh because an internal API `Set-Cookie` response cannot be propagated to the browser by the current abstraction; SSR therefore exposes the final 401 to `routeHandler` for login policy.
-- Non-success responses retain their HTTP status. If their body does not match the shared `{ error: { code: string, requestId: string } }` schema, `http` uses the safe `HttpError` code and does not expose the response body.
+- Set `API_URL` to the trusted, server-only API base URL. A pathname is supported: with `API_URL=https://host/api`, `/transactions` resolves to `https://host/api/transactions`.
+- `serverHttp` forwards the incoming `Cookie` only to the configured API origin and sends the public web origin expected by Express. Cross-origin target URLs are rejected before fetch.
+- API modules never redirect or render UI. They decode shared DTOs and preserve `{ data, headers }`.
+- `serverHttp` performs refresh on the server, retries with rotated cookies, and propagates every `Set-Cookie` back through React Router. Concurrent requests with the same refresh token share the in-flight refresh.
+- `routeHandler` owns navigation/error policy and preserves response headers. `routeAction` additionally rejects mutations without exact same-origin provenance.
+- Non-success responses retain their status. Invalid error bodies use the safe `HttpError` code and never expose the private response body.
 - Validation errors that belong beside a form may be caught locally before they reach the boundary.

@@ -3,12 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "react-router build",
+    "build": "node ../../scripts/check-web-architecture.mjs app && react-router build",
+    "check:architecture": "node ../../scripts/check-web-architecture.mjs app",
     "dev": "react-router dev",
     "pretest": "pnpm --filter @finex/shared build",
-    "test": "node ../../scripts/check-focused-tests.mjs app && tsx --test app/**/*.test.ts app/**/**/*.test.ts app/**/*.test.tsx app/**/**/*.test.tsx",
+    "test": "node ../../scripts/check-web-architecture.mjs app && node ../../scripts/check-focused-tests.mjs app && tsx --test app/**/*.test.ts app/**/**/*.test.ts app/**/*.test.tsx app/**/**/*.test.tsx",
     "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
+    "typecheck": "node ../../scripts/check-web-architecture.mjs app && react-router typegen && tsc"
   },
   "dependencies": {
     "@finex/shared": "workspace:*",
