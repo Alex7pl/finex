@@ -1,6 +1,7 @@
 import { notify } from "@/libs/notifications.js";
-import { routeAction } from "@/libs/route-handler.server.js";
+import { routeAction, routeHandler } from "@/libs/route-handler.server.js";
 import { handleAuthSubmission } from "@/modules/auth/auth.action.server.js";
+import { authApi } from "@/modules/auth/auth.api.server";
 import type {
   AuthActionData,
   AuthMode,
@@ -9,10 +10,10 @@ import type {
 import { AuthPanel } from "@/modules/auth/components/AuthPanel.js";
 import { HomePage } from "@/modules/home/components/HomePage.js";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useFetcher } from "react-router";
+import { data, useFetcher } from "react-router";
 import type { Route } from "./+types/home";
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [{ title: "FineX" }];
 }
 
@@ -20,8 +21,20 @@ export const action = routeAction(
   async ({ request }: Route.ActionArgs) => handleAuthSubmission(request),
 );
 
-export default function Home() {
+export const loader = routeHandler(
+  async ({ request }: Route.LoaderArgs) => {
+    const result = await authApi.verifyLogin(request);
+
+    return data(
+      { authenticated: result.data },
+      { headers: result.headers },
+    );
+  },
+);
+
+export default function Home({ loaderData }: Route.ComponentProps) {
   const fetcher = useFetcher<typeof action>();
+  const { authenticated } = loaderData;
   const [authMode, setAuthMode] = useState<AuthMode | null>(null);
   const [authFeedback, setAuthFeedback] = useState<AuthActionData | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -69,6 +82,7 @@ export default function Home() {
 
   return (
     <HomePage
+      userAuthenticated={authenticated}
       authOpen={authMode !== null}
       onLogin={(trigger) => openAuth("login", trigger)}
       onRegister={(trigger) => openAuth("register", trigger)}

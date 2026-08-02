@@ -4,6 +4,7 @@ const HERO_VIDEO = "/hero-background.mp4";
 const CARD_IMAGE = "/jakub-zerdzicki-U4-I4oH4xlg-unsplash.jpg";
 
 interface HomePageProps {
+  userAuthenticated: boolean;
   authOpen: boolean;
   authPanel?: ReactNode;
   onLogin: (trigger: HTMLButtonElement) => void;
@@ -11,24 +12,32 @@ interface HomePageProps {
 }
 
 interface HomeHeaderProps {
+  userAuthenticated?: boolean;
   onLogin: HomePageProps["onLogin"];
   onRegister: HomePageProps["onRegister"];
 }
 
-function HomeHeader({ onLogin, onRegister }: HomeHeaderProps) {
+function HomeHeader({ userAuthenticated, onLogin, onRegister }: HomeHeaderProps) {
   return (
     <header className="flex min-h-21 items-center justify-between px-5 py-3 sm:px-7 lg:px-9">
       <a href="/" className="text-2xl font-semibold tracking-normal text-foreground-muted sm:text-3xl" aria-label="FineX home">
         FineX
       </a>
-
       <nav aria-label="Principal" className="flex items-center gap-4 text-sm sm:gap-8 sm:text-base lg:gap-16">
-        <button type="button" onClick={(event) => onLogin(event.currentTarget)} className="hidden text-muted-foreground transition-colors hover:text-secondary-foreground sm:block">
-          Iniciar sesión
-        </button>
-        <button type="button" onClick={(event) => onRegister(event.currentTarget)} className="rounded-[22px] bg-primary px-6 py-4 font-medium text-primary-foreground transition-all hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg sm:px-9 lg:px-12">
-          Registrarse
-        </button>
+        {userAuthenticated ? (
+          <a href="/dashboard" className="rounded-[22px] bg-primary px-6 py-4 font-medium text-primary-foreground transition-all hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg sm:px-9 lg:px-12">
+            Ir al panel
+          </a>
+        ) : (
+          <>
+            <button type="button" onClick={(event) => onLogin(event.currentTarget)} className="hidden text-muted-foreground transition-colors hover:text-secondary-foreground sm:block">
+              Iniciar sesión
+            </button>
+            <button type="button" onClick={(event) => onRegister(event.currentTarget)} className="rounded-[22px] bg-primary px-6 py-4 font-medium text-primary-foreground transition-all hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg sm:px-9 lg:px-12">
+              Registrarse
+            </button>
+          </>
+        )}
       </nav>
     </header>
   );
@@ -95,10 +104,10 @@ function Hero({ authOpen, authPanel }: Pick<HomePageProps, "authOpen" | "authPan
   );
 }
 
-export function HomePage({ authOpen, authPanel, onLogin, onRegister }: HomePageProps) {
+export function HomePage({ userAuthenticated, authOpen, authPanel, onLogin, onRegister }: HomePageProps) {
   return (
     <main className="min-h-screen overflow-x-hidden bg-background font-sans text-foreground">
-      <HomeHeader onLogin={onLogin} onRegister={onRegister} />
+      <HomeHeader userAuthenticated={userAuthenticated} onLogin={onLogin} onRegister={onRegister} />
       <Hero authOpen={authOpen} authPanel={authPanel} />
     </main>
   );

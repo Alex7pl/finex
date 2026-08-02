@@ -77,7 +77,10 @@ export function createAuthRouter(run: typeof runPublic = runPublic) {
     "/verifyLogin",
     requireAllowedOrigin,
     makeHandler(run)((req, ctx) => {
-      const accessToken = getCookie(req.headers.cookie ?? "", "accessToken");
+      if (ctx.user) {
+        return Effect.succeed(true);
+      }
+
       const refreshToken = getCookie(req.headers.cookie ?? "", "refreshToken");
 
       if (!refreshToken) {
@@ -85,22 +88,16 @@ export function createAuthRouter(run: typeof runPublic = runPublic) {
         return Effect.succeed(false);
       }
 
-      if (!accessToken) {
-        return refresh(refreshToken).pipe(
-          Effect.map((result) => {
-            setAuthCookies(ctx.response, result);
-            return true;
-          }),
-          Effect.tapError((error) =>
-            error._tag === "UnauthorizedError"
-              ? Effect.sync(() => clearAuthCookies(ctx.response))
-              : Effect.void,
-          ),
-        );
-      }
-
-      // If both tokens exist, consider the session valid
-      return Effect.succeed(true);
+      return refresh(refreshToken).pipe(
+        Effect.map((result) => {
+          setAuthCookies(ctx.response, result);
+          return true;
+        }),
+        Effect.catchTag("UnauthorizedError", () => {
+          clearAuthCookies(ctx.response);
+          return Effect.succeed(false);
+        }),
+      );
     }),
   );
 
