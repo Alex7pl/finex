@@ -19,13 +19,13 @@ interface HomeHeaderProps {
 
 function HomeHeader({ userAuthenticated, onLogin, onRegister }: HomeHeaderProps) {
   return (
-    <header className="flex min-h-21 items-center justify-between px-5 py-3 sm:px-7 lg:px-9">
+    <header className="flex min-h-21 items-center justify-between px-7 py-3 sm:px-13 lg:pl-27 lg:pr-3">
       <a href="/" className="text-2xl font-semibold tracking-normal text-foreground-muted sm:text-3xl" aria-label="FineX home">
         FineX
       </a>
       <nav aria-label="Principal" className="flex items-center gap-4 text-sm sm:gap-8 sm:text-base lg:gap-16">
         {userAuthenticated ? (
-          <a href="/dashboard" className="rounded-[22px] bg-primary px-6 py-4 font-medium text-primary-foreground transition-all hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg sm:px-9 lg:px-12">
+          <a href="/dashboard" className="action-primary rounded-control px-6 py-4 font-medium sm:px-9 lg:px-12">
             Ir al panel
           </a>
         ) : (
@@ -33,7 +33,7 @@ function HomeHeader({ userAuthenticated, onLogin, onRegister }: HomeHeaderProps)
             <button type="button" onClick={(event) => onLogin(event.currentTarget)} className="hidden text-muted-foreground transition-colors hover:text-secondary-foreground sm:block">
               Iniciar sesión
             </button>
-            <button type="button" onClick={(event) => onRegister(event.currentTarget)} className="rounded-[22px] bg-primary px-6 py-4 font-medium text-primary-foreground transition-all hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg sm:px-9 lg:px-12">
+            <button type="button" onClick={(event) => onRegister(event.currentTarget)} className="action-primary rounded-control px-6 py-4 font-medium sm:px-9 lg:px-12">
               Registrarse
             </button>
           </>
@@ -45,7 +45,7 @@ function HomeHeader({ userAuthenticated, onLogin, onRegister }: HomeHeaderProps)
 
 function NewsCard() {
   return (
-    <article className="grid overflow-hidden rounded-[18px] bg-surface text-surface-foreground shadow-[0_20px_55px_rgba(0,0,0,0.14)] sm:grid-cols-[minmax(0,1fr)_190px] lg:w-[560px]">
+    <article className="grid w-full overflow-hidden rounded-control bg-surface text-surface-foreground shadow-[0_20px_55px_rgba(0,0,0,0.14)] sm:grid-cols-[minmax(0,1fr)_190px] lg:ml-auto lg:max-w-[560px]">
       <div className="flex min-h-44 flex-col p-5 sm:p-6">
         <div className="mb-4 flex items-center justify-between gap-4 text-xs text-muted sm:text-sm">
           <span>Noticias</span>
@@ -72,14 +72,14 @@ function HeroContent({ authOpen }: Pick<HomePageProps, "authOpen">) {
         </h1>
       </div>
 
-      <div className="mt-auto grid gap-8 pt-12 lg:grid-cols-[320px_1fr] lg:items-end">
+      <div className="mt-auto grid gap-8 pt-12 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-end">
         <div className="max-w-sm">
           <p className="text-base leading-tight text-white sm:text-lg">
             FineX usa inteligencia artificial para analizar tus finanzas, anticipar patrones de gasto y convertir tus datos en decisiones claras, precisas y accionables.
           </p>
         </div>
 
-        <div className="justify-self-stretch lg:justify-self-end">
+        <div className="justify-self-stretch">
           <NewsCard />
         </div>
       </div>
@@ -90,7 +90,7 @@ function HeroContent({ authOpen }: Pick<HomePageProps, "authOpen">) {
 function Hero({ authOpen, authPanel }: Pick<HomePageProps, "authOpen" | "authPanel">) {
   return (
     <section className="px-2 pb-2 sm:px-3">
-      <div className="relative min-h-[calc(100vh-96px)] overflow-hidden rounded-[24px] bg-hero-surface sm:rounded-[28px]">
+      <div className="relative min-h-[calc(100vh-96px)] overflow-hidden rounded-hero bg-hero-surface">
         <video src={HERO_VIDEO} className="absolute inset-0 h-full w-full object-cover" autoPlay muted loop playsInline aria-label="Animación abstracta de fondo" />
         <div className="absolute inset-0 bg-hero-overlay/55" />
         <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-hero/85 via-hero/35 to-transparent" />

@@ -6,6 +6,7 @@ import { HomePage } from "./HomePage.js";
 function render(authOpen: boolean) {
   return renderToStaticMarkup(
     <HomePage
+      userAuthenticated={false}
       authOpen={authOpen}
       authPanel={<aside data-auth-slot="true">Auth panel</aside>}
       onLogin={() => {}}

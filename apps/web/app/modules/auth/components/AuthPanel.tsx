@@ -58,21 +58,21 @@ export function AuthPanel({ mode, feedback, pending, onModeChange, onSubmit, onC
   return (
     <>
       <button type="button" className={`${closing ? "auth-backdrop-exit" : "auth-backdrop-enter"} absolute inset-0 z-20 cursor-default bg-hero/35 backdrop-blur-[2px]`} onClick={requestClose} aria-label="Cerrar acceso" />
-      <div role="dialog" aria-modal="true" aria-labelledby="auth-panel-title" className={`${closing ? "auth-panel-exit" : "auth-panel-enter"} auth-panel-scrollbar-hidden absolute inset-y-2 left-2 z-30 flex w-[calc(100%-16px)] max-w-[540px] flex-col overflow-y-auto rounded-[22px] border border-white/70 bg-background/[0.97] text-foreground shadow-[0_32px_90px_rgba(7,31,23,0.32)] backdrop-blur-xl sm:inset-y-3 sm:left-3 sm:w-[min(520px,calc(100%-24px))] sm:rounded-[24px]`}>
+      <div role="dialog" aria-modal="true" aria-labelledby="auth-panel-title" className={`${closing ? "auth-panel-exit" : "auth-panel-enter"} auth-panel-scrollbar-hidden absolute inset-y-2 left-2 z-30 flex w-[calc(100%-16px)] max-w-[540px] flex-col overflow-y-auto rounded-panel border border-white/70 bg-background/[0.97] text-foreground shadow-[0_32px_90px_rgba(7,31,23,0.32)] backdrop-blur-xl sm:inset-y-3 sm:left-3 sm:w-[min(520px,calc(100%-24px))]`}>
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border/70 bg-background/90 px-5 py-4 backdrop-blur-xl sm:px-8">
           <div className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
-            <span className="grid h-8 w-8 place-items-center rounded-xl bg-primary text-primary-foreground"><LockKeyhole className="h-4 w-4" aria-hidden="true" /></span>
+            <span className="grid h-8 w-8 place-items-center rounded-control bg-primary text-primary-foreground"><LockKeyhole className="h-4 w-4" aria-hidden="true" /></span>
             Acceso seguro
           </div>
-          <button type="button" autoFocus onClick={requestClose} className="grid h-10 w-10 place-items-center rounded-full text-muted transition hover:bg-white hover:text-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/15" aria-label="Cerrar">
+          <button type="button" autoFocus onClick={requestClose} className="grid h-10 w-10 place-items-center rounded-control text-muted transition hover:bg-white hover:text-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/15" aria-label="Cerrar">
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 
         <div key={mode} className={`auth-content-enter flex flex-1 flex-col px-5 sm:px-9 ${mode === "register" ? "py-5 sm:py-6" : "py-7 sm:py-9"}`}>
-          <div className={`${mode === "register" ? "mb-5" : "mb-7"} grid grid-cols-2 rounded-2xl bg-white/80 p-1 shadow-[inset_0_0_0_1px_rgba(26,71,49,0.08)]`} aria-label="Tipo de acceso">
-            <button type="button" disabled={pending} onClick={() => onModeChange("login")} aria-pressed={mode === "login"} className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-60 ${mode === "login" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted hover:text-primary"}`}>Iniciar sesión</button>
-            <button type="button" disabled={pending} onClick={() => onModeChange("register")} aria-pressed={mode === "register"} className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-60 ${mode === "register" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted hover:text-primary"}`}>Crear cuenta</button>
+          <div className={`${mode === "register" ? "mb-5" : "mb-7"} grid grid-cols-2 rounded-control bg-white/80 p-1 shadow-[inset_0_0_0_1px_rgba(26,71,49,0.08)]`} aria-label="Tipo de acceso">
+            <button type="button" disabled={pending} onClick={() => onModeChange("login")} aria-pressed={mode === "login"} className={`rounded-control-inner px-4 py-2.5 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-60 ${mode === "login" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted hover:text-primary"}`}>Iniciar sesión</button>
+            <button type="button" disabled={pending} onClick={() => onModeChange("register")} aria-pressed={mode === "register"} className={`rounded-control-inner px-4 py-2.5 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-60 ${mode === "register" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted hover:text-primary"}`}>Crear cuenta</button>
           </div>
 
           <p className="text-xs font-semibold uppercase tracking-[0.19em] text-primary-hover">{copy.eyebrow}</p>

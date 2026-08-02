@@ -77,12 +77,12 @@ export function Toast({ toast }: ToastProps) {
   return (
     <div
       {...a11yProps}
-      className={`pointer-events-auto relative grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 overflow-hidden rounded-2xl border p-3.5 shadow-[0_18px_50px_rgba(24,52,43,0.14),0_2px_10px_rgba(24,52,43,0.06)] backdrop-blur-sm ${meta.card} ${animationClass}`}
+      className={`pointer-events-auto relative grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 overflow-hidden rounded-notice border p-3.5 shadow-[0_18px_50px_rgba(24,52,43,0.14),0_2px_10px_rgba(24,52,43,0.06)] backdrop-blur-sm ${meta.card} ${animationClass}`}
       onAnimationEnd={handleAnimationEnd}
     >
       <span
         aria-hidden="true"
-        className={`flex size-9 items-center justify-center rounded-xl ${meta.iconSurface}`}
+        className={`flex size-9 items-center justify-center rounded-control ${meta.iconSurface}`}
       >
         {meta.icon}
       </span>
@@ -100,7 +100,7 @@ export function Toast({ toast }: ToastProps) {
         type="button"
         aria-label="Cerrar notificación"
         title="Cerrar"
-        className="-mr-1 -mt-1 flex size-8 items-center justify-center rounded-full text-[#79817d] transition-colors hover:bg-black/5 hover:text-[#34443d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        className="-mr-1 -mt-1 flex size-8 items-center justify-center rounded-control text-[#79817d] transition-colors hover:bg-black/5 hover:text-[#34443d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         onClick={() => beginExit(toast.id)}
       >
         <X className="size-4" aria-hidden="true" />

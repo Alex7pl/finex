@@ -88,7 +88,7 @@ function AuthFieldControl({
       id={controlId}
       aria-invalid={Boolean(error)}
       aria-describedby={describedBy}
-      className={`h-12 w-full rounded-2xl border bg-white px-4 text-base text-surface-heading outline-none transition placeholder:text-muted/55 focus:border-primary focus:ring-3 focus:ring-primary/10 ${error ? "border-red-400" : "border-border"} ${className}`}
+      className={`h-12 w-full rounded-control border bg-white px-4 text-base text-surface-heading outline-none transition placeholder:text-muted/55 focus:border-primary focus:ring-3 focus:ring-primary/10 ${error ? "border-red-400" : "border-border"} ${className}`}
     />
   );
 }
@@ -155,7 +155,7 @@ export function PasswordField({
       <button
         type="button"
         onClick={() => setVisible((value) => !value)}
-        className="absolute right-3 top-[38px] grid h-9 w-9 place-items-center rounded-xl text-muted transition hover:bg-background hover:text-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/15"
+        className="absolute right-3 top-[38px] grid h-9 w-9 place-items-center rounded-control text-muted transition hover:bg-background hover:text-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/15"
         aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
         aria-pressed={visible}
       >
@@ -170,7 +170,7 @@ export function SubmitButton({ pending, children }: { pending: boolean; children
     <button
       type="submit"
       disabled={pending}
-      className="flex h-13 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 font-medium text-primary-foreground transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-65"
+      className="action-primary flex h-13 w-full items-center justify-center gap-2 rounded-control px-6 font-medium disabled:cursor-not-allowed disabled:opacity-65"
     >
       {pending ? <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden="true" /> : null}
       {pending ? "Un momento…" : children}
@@ -179,5 +179,5 @@ export function SubmitButton({ pending, children }: { pending: boolean; children
 }
 
 export function FormAlert({ children }: { children?: ReactNode }) {
-  return children ? <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-800">{children}</div> : null;
+  return children ? <div role="alert" className="rounded-notice border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-800">{children}</div> : null;
 }

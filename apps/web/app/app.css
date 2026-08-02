@@ -28,6 +28,62 @@
   --color-hero-foreground: #dfffda;
 
   --color-border: #e5e8e1;
+
+  /* Geometría v2: escala casi recta. El radio crece con la superficie. */
+  --radius-control: 5px; /* botones, inputs, iconos, selector */
+  --radius-control-inner: 3px; /* píldoras dentro de un control */
+  --radius-notice: 8px; /* avisos, alertas de formulario */
+  --radius-card: 10px; /* tarjetas */
+  --radius-panel: 12px; /* panel de acceso */
+  --radius-hero: 14px; /* contenedor del hero */
+
+  /* Tratamiento de acción "Filo de luz" */
+  --shadow-action:
+    inset 0 0 0 1px rgba(223, 255, 218, 0.26),
+    inset 0 1px 0 rgba(223, 255, 218, 0.14),
+    0 6px 16px -8px rgba(24, 52, 43, 0.52);
+  --shadow-action-hover:
+    inset 0 0 0 1px rgba(223, 255, 218, 0.42),
+    inset 0 1px 0 rgba(223, 255, 218, 0.22),
+    0 0 0 5px rgba(47, 127, 88, 0.14),
+    0 10px 22px -10px rgba(24, 52, 43, 0.55);
+  --shadow-action-active:
+    inset 0 0 0 1px rgba(223, 255, 218, 0.18),
+    inset 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+/* Acción principal: degradado corto + filo de luz + halo en hover.
+   Estados propios; los componentes solo añaden layout y radio. */
+.action-primary {
+  color: var(--color-primary-foreground);
+  background: linear-gradient(180deg, #1e4f37 0%, #1a4731 60%);
+  box-shadow: var(--shadow-action);
+  transition:
+    background 160ms ease,
+    box-shadow 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.action-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #2f7f58 0%, #276b4a 60%);
+  box-shadow: var(--shadow-action-hover);
+}
+
+.action-primary:active:not(:disabled) {
+  background: linear-gradient(180deg, #17402c 0%, #143526 60%);
+  box-shadow: var(--shadow-action-active);
+}
+
+.action-primary:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 0 0 0 1px rgba(223, 255, 218, 0.26),
+    0 0 0 4px rgba(26, 71, 49, 0.22);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .action-primary {
+    transition: none;
+  }
 }
 
 html,
