@@ -1,100 +1,311 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-serif: "Cormorant Garamond", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --color-background: #f7f8f5;
-  --color-foreground: #595e5b;
-  --color-foreground-muted: #626765;
+  /* El hilo: cielo nocturno, marfil envejecido, terracota y oro mate. */
+  --color-night: #0d1a21;
+  --color-night-soft: #102229;
+  --color-petrol: #24505a;
+  --color-petrol-deep: #15313a;
+  --color-ivory: #f1e9da;
+  --color-ivory-soft: #faf6ee;
+  --color-parchment: #f1e7d3;
+  --color-stone: #d6ccb9;
+  --color-stone-line: #e6ddcc;
+  --color-stone-strong: #c9bda6;
+  --color-terracotta: #a9502c;
+  --color-terracotta-deep: #8f3e20;
+  --color-gold: #ddbf8a;
+  --color-gold-light: #f4e4be;
+  --color-gold-deep: #b38a4e;
+  --color-gold-ink: #7a5a2a;
 
-  --color-surface: #ffffff;
-  --color-surface-foreground: #606260;
-  --color-surface-heading: #5e615f;
+  --color-canvas: #f3ede1;
+  --color-ink: #1b2226;
+  --color-ink-soft: #3f3b35;
+  --color-ink-muted: #5e5a52;
+  --color-danger: #8f3e20;
 
-  --color-primary: #1a4731;
-  --color-primary-hover: #2f7f58;
-  --color-primary-foreground: #f7f8f5;
+  /* Alias que usan el panel de acceso y los formularios */
+  --color-background: #f6f1e7;
+  --color-foreground: #3f3b35;
+  --color-foreground-muted: #5e5a52;
+  --color-surface: #faf6ee;
+  --color-surface-foreground: #3f3b35;
+  --color-surface-heading: #1b2226;
+  --color-primary: #13282f;
+  --color-primary-hover: #24505a;
+  --color-primary-foreground: #f1e9da;
+  --color-secondary: #f1e7d3;
+  --color-secondary-foreground: #4a3a20;
+  --color-muted: #5e5a52;
+  --color-muted-foreground: #4f4a42;
+  --color-hero: #0d1a21;
+  --color-hero-surface: #0d1a21;
+  --color-hero-overlay: #0a151b;
+  --color-hero-foreground: #ddbf8a;
+  --color-border: #d9cfbd;
 
-  --color-secondary: #fff4cc;
-  --color-secondary-foreground: #595e5b;
+  /* Geometría arquitectónica: casi sin radio. El arco se reserva para momentos señalados. */
+  --radius-control: 2px;
+  --radius-control-inner: 0px;
+  --radius-notice: 2px;
+  --radius-card: 2px;
+  --radius-panel: 0px;
+  --radius-hero: 0px;
+  --radius-arch: 999px 999px 0 0;
 
-  --color-muted: #646866;
-  --color-muted-foreground: #4f5552;
-
-  --color-hero: #18342b;
-  --color-hero-surface: #1d332c;
-  --color-hero-overlay: #173229;
-  --color-hero-foreground: #dfffda;
-
-  --color-border: #e5e8e1;
-
-  /* Geometría v2: escala casi recta. El radio crece con la superficie. */
-  --radius-control: 5px; /* botones, inputs, iconos, selector */
-  --radius-control-inner: 3px; /* píldoras dentro de un control */
-  --radius-notice: 8px; /* avisos, alertas de formulario */
-  --radius-card: 10px; /* tarjetas */
-  --radius-panel: 12px; /* panel de acceso */
-  --radius-hero: 14px; /* contenedor del hero */
-
-  /* Tratamiento de acción "Filo de luz" */
-  --shadow-action:
-    inset 0 0 0 1px rgba(223, 255, 218, 0.26),
-    inset 0 1px 0 rgba(223, 255, 218, 0.14),
-    0 6px 16px -8px rgba(24, 52, 43, 0.52);
-  --shadow-action-hover:
-    inset 0 0 0 1px rgba(223, 255, 218, 0.42),
-    inset 0 1px 0 rgba(223, 255, 218, 0.22),
-    0 0 0 5px rgba(47, 127, 88, 0.14),
-    0 10px 22px -10px rgba(24, 52, 43, 0.55);
-  --shadow-action-active:
-    inset 0 0 0 1px rgba(223, 255, 218, 0.18),
-    inset 0 2px 4px rgba(0, 0, 0, 0.25);
-}
-
-/* Acción principal: degradado corto + filo de luz + halo en hover.
-   Estados propios; los componentes solo añaden layout y radio. */
-.action-primary {
-  color: var(--color-primary-foreground);
-  background: linear-gradient(180deg, #1e4f37 0%, #1a4731 60%);
-  box-shadow: var(--shadow-action);
-  transition:
-    background 160ms ease,
-    box-shadow 240ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.action-primary:hover:not(:disabled) {
-  background: linear-gradient(180deg, #2f7f58 0%, #276b4a 60%);
-  box-shadow: var(--shadow-action-hover);
-}
-
-.action-primary:active:not(:disabled) {
-  background: linear-gradient(180deg, #17402c 0%, #143526 60%);
-  box-shadow: var(--shadow-action-active);
-}
-
-.action-primary:focus-visible {
-  outline: none;
-  box-shadow:
-    inset 0 0 0 1px rgba(223, 255, 218, 0.26),
-    0 0 0 4px rgba(26, 71, 49, 0.22);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .action-primary {
-    transition: none;
-  }
+  --ease-fluid: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-cinema: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+}
 
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
+/* ── Acciones ──────────────────────────────────────────────────────────────
+   Estados propios; los componentes solo añaden layout y radio. */
+.action-primary,
+.action-secondary,
+.action-gold,
+.action-ghost-light {
+  transition:
+    background-color 500ms var(--ease-fluid),
+    color 500ms var(--ease-fluid),
+    box-shadow 600ms var(--ease-fluid),
+    transform 250ms var(--ease-fluid);
+}
+
+.action-primary {
+  color: var(--color-primary-foreground);
+  background: var(--color-primary);
+}
+
+.action-primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.action-secondary {
+  color: var(--color-ink);
+  border: 1px solid var(--color-stone-strong);
+  background: transparent;
+}
+
+.action-secondary:hover:not(:disabled) {
+  background: #eae2d2;
+}
+
+.action-secondary[aria-pressed="true"] {
+  color: var(--color-primary-foreground);
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+}
+
+/* Oro: solo en la portada, sobre la escena. */
+.action-gold {
+  color: #1a140c;
+  background: var(--color-gold);
+}
+
+.action-gold:hover:not(:disabled) {
+  box-shadow: 0 0 0 1px rgba(221, 191, 138, 0.55), 0 12px 40px -12px rgba(221, 191, 138, 0.5);
+}
+
+.action-ghost-light {
+  color: var(--color-ivory);
+  border: 1px solid rgba(241, 233, 218, 0.28);
+}
+
+.action-ghost-light:hover {
+  background: rgba(241, 233, 218, 0.08);
+}
+
+.action-primary:active:not(:disabled),
+.action-secondary:active:not(:disabled),
+.action-gold:active:not(:disabled),
+.action-ghost-light:active {
+  transform: scale(0.985);
+}
+
+.action-primary:focus-visible,
+.action-secondary:focus-visible,
+.action-gold:focus-visible,
+.action-ghost-light:focus-visible {
+  outline: 2px solid var(--color-gold-deep);
+  outline-offset: 3px;
+}
+
+/* Campo de formulario */
+.field {
+  min-height: 44px;
+  border: 1px solid #cfc3ae;
+  border-radius: 0;
+  background: #fffdf9;
+  color: var(--color-ink);
+  transition: border-color 400ms var(--ease-fluid), box-shadow 400ms var(--ease-fluid);
+}
+
+.field::placeholder {
+  color: #8a8478;
+}
+
+.field:focus,
+.field:focus-within {
+  outline: none;
+  border-color: var(--color-petrol);
+  box-shadow: 0 0 0 3px rgba(36, 80, 90, 0.15);
+}
+
+.field[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+/* Políptico: celdas que comparten una línea de piedra de 1px. */
+.polyptych {
+  display: grid;
+  gap: 1px;
+  background: #d3c8b3;
+  border: 1px solid #d3c8b3;
+}
+
+/* Punto de luz dorado que marca lo importante */
+.light-node {
+  background: var(--color-gold);
+  box-shadow: 0 0 10px rgba(221, 191, 138, 0.8);
+}
+
+/* Vídeo del hero: velo para leer el titular sobre el cielo. */
+.hero-scrim {
+  background:
+    linear-gradient(90deg, rgba(10, 21, 27, 0.82) 0%, rgba(10, 21, 27, 0.55) 34%, rgba(10, 21, 27, 0.08) 58%, rgba(10, 21, 27, 0) 70%),
+    linear-gradient(180deg, rgba(10, 21, 27, 0.55) 0%, rgba(10, 21, 27, 0) 22%, rgba(10, 21, 27, 0) 70%, rgba(10, 21, 27, 0.6) 100%);
+}
+
+@media (max-width: 767px) {
+  .hero-scrim {
+    background: linear-gradient(180deg, rgba(10, 21, 27, 0.72) 0%, rgba(10, 21, 27, 0.5) 55%, rgba(10, 21, 27, 0.75) 100%);
   }
 }
 
+/* ── Movimiento ────────────────────────────────────────────────────────────
+   Lento y cinematográfico: aparece, respira, nunca rebota. */
+@keyframes fx-rise {
+  from { opacity: 0; transform: translateY(18px); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+@keyframes fx-cell {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes fx-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@keyframes fx-breathe {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes fx-sway {
+  0%, 100% { transform: rotate(-1.2deg); }
+  50% { transform: rotate(1.2deg); }
+}
+
+@keyframes fx-sweep {
+  to { transform: translateX(100%); }
+}
+
+@keyframes fx-slow-zoom {
+  from { transform: scale(1.04); }
+  to { transform: scale(1); }
+}
+
+.fx-in { animation: fx-rise 1.4s var(--ease-cinema) both; }
+.fx-d1 { animation-delay: 150ms; }
+.fx-d2 { animation-delay: 400ms; }
+.fx-d3 { animation-delay: 700ms; }
+.fx-d4 { animation-delay: 1000ms; }
+
+.fx-cell { animation: fx-cell 1s var(--ease-cinema) both; }
+.polyptych > .fx-cell:nth-child(2) { animation-delay: 80ms; }
+.polyptych > .fx-cell:nth-child(3) { animation-delay: 160ms; }
+.polyptych > .fx-cell:nth-child(4) { animation-delay: 240ms; }
+.polyptych > .fx-cell:nth-child(5) { animation-delay: 320ms; }
+.polyptych > .fx-cell:nth-child(6) { animation-delay: 400ms; }
+.polyptych > .fx-cell:nth-child(7) { animation-delay: 480ms; }
+.fx-node { animation: fx-glow 3.2s ease-in-out infinite; }
+.fx-breathe { animation: fx-breathe 9s ease-in-out infinite; }
+.fx-sway { transform-origin: 50% 0; animation: fx-sway 6s ease-in-out infinite; }
+.fx-zoom { animation: fx-slow-zoom 2.6s var(--ease-cinema) both; }
+
+/* Carga: la luz recorre el hueco como sobre un fresco. */
+.fx-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-stone-line);
+}
+
+.fx-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, rgba(255, 248, 232, 0) 30%, rgba(255, 248, 232, 0.85) 50%, rgba(255, 248, 232, 0) 70%);
+  transform: translateX(-100%);
+  animation: fx-sweep 2.6s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+}
+
+/* Revelado palabra a palabra de la frase de la portada */
+.fx-word {
+  color: #b9b0a0;
+  transition: color 900ms var(--ease-fluid);
+}
+
+.fx-word[data-lit="true"] {
+  color: var(--color-ink);
+}
+
+/* Escenas que entran al hacer scroll, donde el navegador lo permite */
+@supports (animation-timeline: view()) {
+  .fx-scene {
+    animation: fx-cell linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 30%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-in,
+  .fx-cell,
+  .fx-node,
+  .fx-breathe,
+  .fx-sway,
+  .fx-zoom,
+  .fx-scene,
+  .fx-skeleton::after {
+    animation: none !important;
+  }
+
+  .fx-word,
+  .action-primary,
+  .action-secondary,
+  .action-gold,
+  .action-ghost-light {
+    transition: none;
+  }
+
+  .fx-word { color: var(--color-ink); }
+}
+
+/* ── Panel de acceso ───────────────────────────────────────────────────── */
 @keyframes auth-panel-in {
   from { opacity: 0; transform: translateX(-42px) scale(0.985); }
   to { opacity: 1; transform: translateX(0) scale(1); }
@@ -142,6 +353,7 @@ body {
   }
 }
 
+/* ── Avisos ────────────────────────────────────────────────────────────── */
 @keyframes toast-enter-kf {
   from { opacity: 0; transform: translateY(10px) scale(0.985); }
   to { opacity: 1; transform: translateY(0) scale(1); }

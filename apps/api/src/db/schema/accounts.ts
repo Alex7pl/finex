@@ -7,12 +7,7 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
-import {
-  idColumn,
-  moneyColumn,
-  rateColumn,
-  timestampColumns,
-} from "../helpers.js";
+import { idColumn, rateColumn, timestampColumns } from "../helpers.js";
 import { users } from "./users.js";
 
 export const accounts = pgTable(
@@ -27,7 +22,6 @@ export const accounts = pgTable(
     emoji: varchar("emoji"),
     color: varchar("color"),
 
-    initial_balance: moneyColumn("initial_balance").notNull().default("0"),
     annual_interest_rate: rateColumn("annual_interest_rate"),
     interest_payment_rate: rateColumn("interest_payment_rate"),
 

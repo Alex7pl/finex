@@ -40,9 +40,10 @@ export const transactions = pgTable(
 
     amount: moneyColumn("amount").notNull(),
 
-    from: uuid("from")
-      .references(() => accounts.id, { onDelete: "restrict", onUpdate: "cascade" })
-      .notNull(),
+    from: uuid("from").references(() => accounts.id, {
+      onDelete: "restrict",
+      onUpdate: "cascade",
+    }),
 
     //For fixed transactions
     cycle: timestamp("cycle", { withTimezone: true }).defaultNow(),
@@ -63,10 +64,16 @@ export const transactions_splits = pgTable(
     ...idColumn,
 
     transaction_id: uuid("transaction_id")
-      .references(() => transactions.id, { onDelete: "cascade", onUpdate: "cascade" })
+      .references(() => transactions.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      })
       .notNull(),
     account_id: uuid("account_id")
-      .references(() => accounts.id, { onDelete: "restrict", onUpdate: "cascade" })
+      .references(() => accounts.id, {
+        onDelete: "restrict",
+        onUpdate: "cascade",
+      })
       .notNull(),
 
     amount: moneyColumn("amount").notNull(),

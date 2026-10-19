@@ -1,29 +1,49 @@
-import { Home, TimerReset } from "lucide-react";
-import { Bar, BarChart, XAxis, YAxis } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart.js";
-import { ChartTooltipRow } from "./chart-utils.js";
+import { TimerIcon } from "@phosphor-icons/react";
+import { useId } from "react";
+import { PaintTexture } from "@/components/art/Paint.js";
 
-const goalData = [{ name: "Fondo", completed: 36, remaining: 64 }];
-const chartConfig = {
-  completed: { label: "Completado", color: "#6e9a65" },
-  remaining: { label: "Pendiente", color: "#e7ebe5" },
-} satisfies ChartConfig;
+const saved = 2150;
+const target = 6000;
+const percent = Math.round((saved / target) * 100);
+
+/* El objetivo es el orbe de la portada, que se llena de oro hasta lo ahorrado. */
+function GoalOrb() {
+  const clipId = `goal-orb-${useId().replace(/:/g, "")}`;
+  const top = 6;
+  const base = 106;
+  const level = base - ((base - top) * percent) / 100;
+
+  return (
+    <svg role="img" aria-label={`Fondo de emergencia: ${percent}% completado`} width="112" height="112" viewBox="0 0 112 112" className="shrink-0">
+      <defs><clipPath id={clipId}><circle cx="56" cy="56" r="50" /></clipPath></defs>
+      <circle cx="56" cy="56" r="50" fill="#e3d6bc" />
+      <g clipPath={`url(#${clipId})`}>
+        <rect x="0" y={level} width="112" height={112 - level} fill="url(#paint-orb)" />
+        <rect x="0" y={level} width="112" height={112 - level} fill="#808080" filter="url(#paint-patina)" opacity={0.3} style={{ mixBlendMode: "soft-light" }} />
+        <rect x="0" y={level - 1} width="112" height="1.5" fill="#fff1cf" />
+        <PaintTexture width={112} height={112} />
+      </g>
+      <circle cx="56" cy="56" r="50" fill="none" stroke="#b38a4e" strokeOpacity={0.6} />
+      <path d="M36 22 A40 40 0 0 1 70 14" fill="none" stroke="#ffffff" strokeOpacity={0.7} strokeWidth={1.5} />
+    </svg>
+  );
+}
 
 export function GoalWidget() {
   return (
-    <section className="h-full min-h-[240px] rounded-[12px] border border-[#e4e7e1] bg-white p-5 sm:p-6" aria-labelledby="goal-title">
-      <div className="flex items-center justify-between"><div><p className="text-[12px] font-medium text-[#858d88]">Próximo objetivo</p><h2 id="goal-title" className="mt-1 text-[16px] font-semibold text-[#2e3933]">Fondo de emergencia</h2></div><div className="grid size-10 place-items-center rounded-[9px] bg-[#eef2e9] text-[#426844]"><Home size={18} /></div></div>
-      <div className="mt-7 flex items-end justify-between"><strong className="text-[22px] tracking-[-0.03em] text-[#29352f]">2.150 €</strong><span className="text-[12px] text-[#8d9490]">de 6.000 €</span></div>
-      <ChartContainer config={chartConfig} className="mt-3 h-[32px] w-full aspect-auto" aria-label="Progreso del fondo de emergencia: 36 por ciento completado">
-        <BarChart accessibilityLayer data={goalData} layout="vertical" margin={{ left: 0, right: 0, top: 8, bottom: 8 }}>
-          <XAxis type="number" hide domain={[0, 100]} />
-          <YAxis type="category" dataKey="name" hide />
-          <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel formatter={(value, name) => <ChartTooltipRow label={name === "completed" ? "Completado" : "Pendiente"} value={`${Number(value)}%`} marker={name === "completed" ? "#6e9a65" : "#dfe5dd"} />} />} />
-          <Bar dataKey="completed" stackId="goal" fill="var(--color-completed)" radius={[5, 0, 0, 5]} />
-          <Bar dataKey="remaining" stackId="goal" fill="var(--color-remaining)" radius={[0, 5, 5, 0]} />
-        </BarChart>
-      </ChartContainer>
-      <div className="mt-3 flex items-center justify-between text-[11px] text-[#8b928e]"><span>36% completado</span><span className="flex items-center gap-1 text-[#447050]"><TimerReset size={13} /> 7 meses</span></div>
+    <section className="flex h-full min-h-[300px] flex-col gap-4 bg-parchment p-7" aria-labelledby="goal-title">
+      <div className="flex flex-col gap-1.5">
+        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-gold-ink">Próximo objetivo</p>
+        <h2 id="goal-title" className="text-[15px] font-semibold text-ink">Fondo de emergencia</h2>
+      </div>
+      <div className="mt-auto flex items-end gap-5">
+        <GoalOrb />
+        <div className="flex min-w-0 flex-col gap-1">
+          <strong className="font-serif text-[44px] font-normal leading-none lining-nums tabular-nums text-ink">2.150 €</strong>
+          <span className="text-xs tabular-nums text-[#5c4a2c]">de 6.000 € · {percent}%</span>
+          <span className="flex items-center gap-1 text-xs font-medium text-petrol"><TimerIcon size={14} aria-hidden="true" /> 7 meses al ritmo actual</span>
+        </div>
+      </div>
     </section>
   );
 }

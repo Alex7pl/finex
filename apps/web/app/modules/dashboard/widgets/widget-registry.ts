@@ -1,14 +1,14 @@
 import type { ComponentType } from "react";
-import type { LucideIcon } from "lucide-react";
+import type { Icon } from "@phosphor-icons/react";
 import {
-  ChartNoAxesCombined,
-  Lightbulb,
-  ListChecks,
-  PiggyBank,
-  ReceiptText,
-  Target,
-  WalletCards,
-} from "lucide-react";
+  ChartLineUpIcon,
+  LightbulbIcon,
+  ListChecksIcon,
+  PiggyBankIcon,
+  ReceiptIcon,
+  TargetIcon,
+  WalletIcon,
+} from "@phosphor-icons/react";
 import type { DashboardWidgetId, DashboardWidgetSize } from "../dashboard-layout.js";
 import { AccountsWidget } from "./AccountsWidget.js";
 import { BalanceWidget } from "./BalanceWidget.js";
@@ -22,7 +22,7 @@ export interface DashboardWidgetDefinition {
   id: DashboardWidgetId;
   title: string;
   description: string;
-  icon: LucideIcon;
+  icon: Icon;
   component: ComponentType;
 }
 
@@ -43,49 +43,49 @@ export const dashboardWidgetRegistry: Record<DashboardWidgetId, DashboardWidgetD
     id: "balance",
     title: "Dinero disponible",
     description: "Saldo consolidado y evolución del periodo.",
-    icon: ChartNoAxesCombined,
+    icon: ChartLineUpIcon,
     component: BalanceWidget,
   },
   insight: {
     id: "insight",
-    title: "Insight de finex",
+    title: "Insight de FineX",
     description: "Una recomendación prioritaria basada en tus hábitos.",
-    icon: Lightbulb,
+    icon: LightbulbIcon,
     component: InsightWidget,
   },
   "cash-flow": {
     id: "cash-flow",
     title: "Balance del mes",
     description: "Ingresos y gastos del periodo actual.",
-    icon: ListChecks,
+    icon: ListChecksIcon,
     component: CashFlowWidget,
   },
   budgets: {
     id: "budgets",
     title: "Presupuestos",
     description: "Seguimiento de límites por categoría.",
-    icon: Target,
+    icon: TargetIcon,
     component: BudgetsWidget,
   },
   accounts: {
     id: "accounts",
     title: "Mis cuentas",
     description: "Saldos de las cuentas conectadas.",
-    icon: WalletCards,
+    icon: WalletIcon,
     component: AccountsWidget,
   },
   transactions: {
     id: "transactions",
     title: "Últimos movimientos",
     description: "Actividad reciente de todas tus cuentas.",
-    icon: ReceiptText,
+    icon: ReceiptIcon,
     component: TransactionsWidget,
   },
   goal: {
     id: "goal",
     title: "Objetivo de ahorro",
     description: "Progreso de tu próximo objetivo financiero.",
-    icon: PiggyBank,
+    icon: PiggyBankIcon,
     component: GoalWidget,
   },
 };

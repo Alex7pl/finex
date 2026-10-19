@@ -19,8 +19,8 @@ export function formatCompactEuro(value: number) {
 export function ChartTooltipRow({ label, value, marker }: { label: ReactNode; value: ReactNode; marker?: string }) {
   return (
     <div className="flex min-w-[150px] items-center justify-between gap-5">
-      <span className="flex items-center gap-2 text-[#748078]">{marker ? <span className="size-2 rounded-[2px]" style={{ backgroundColor: marker }} /> : null}{label}</span>
-      <strong className="font-mono font-semibold tabular-nums text-[#26332c]">{value}</strong>
+      <span className="flex items-center gap-2 text-ink-muted">{marker ? <span className="size-2" style={{ backgroundColor: marker }} /> : null}{label}</span>
+      <strong className="font-mono font-semibold tabular-nums text-ink">{value}</strong>
     </div>
   );
 }

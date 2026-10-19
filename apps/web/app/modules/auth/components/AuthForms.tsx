@@ -119,7 +119,7 @@ export function RegisterForm({ feedback, pending, onSubmit }: RegisterFormProps)
           <input name="terms" type="checkbox" className="mt-1 h-4 w-4 rounded border-border accent-primary" aria-invalid={Boolean(feedback?.fieldErrors.terms)} aria-describedby={feedback?.fieldErrors.terms ? "terms-error" : undefined} />
           <span>Acepto los términos de uso y la política de privacidad de FineX.</span>
         </label>
-        {feedback?.fieldErrors.terms ? <p id="terms-error" className="mt-2 text-sm text-red-700">{feedback.fieldErrors.terms}</p> : null}
+        {feedback?.fieldErrors.terms ? <p id="terms-error" className="mt-2 text-sm text-danger">{feedback.fieldErrors.terms}</p> : null}
       </div>
       <SubmitButton pending={pending}>Crear mi cuenta</SubmitButton>
     </form>

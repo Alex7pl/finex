@@ -1,4 +1,4 @@
-import { TrendingUp } from "lucide-react";
+import { TrendUpIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart.js";
@@ -6,6 +6,8 @@ import { ChartTooltipRow, formatCompactEuro, formatEuro } from "./chart-utils.js
 
 type Period = "Semana" | "Mes" | "Año";
 type BalancePoint = { date: string; balance: number };
+
+const periods: Period[] = ["Semana", "Mes", "Año"];
 
 const chartData: Record<Period, BalancePoint[]> = {
   Semana: [
@@ -28,39 +30,70 @@ const chartData: Record<Period, BalancePoint[]> = {
 };
 
 const chartConfig = {
-  balance: { label: "Saldo", color: "#1f5a40" },
+  balance: { label: "Saldo", color: "#ddbf8a" },
 } satisfies ChartConfig;
+
+/* El último punto del periodo es "hoy": un nodo de luz dorado que respira. */
+function TodayDot({ cx, cy, index, length }: { cx?: number; cy?: number; index?: number; length: number }) {
+  if (cx === undefined || cy === undefined || index !== length - 1) return <g />;
+  return <rect className="fx-node" x={cx - 4} y={cy - 4} width={8} height={8} fill="#f4e4be" style={{ filter: "drop-shadow(0 0 6px rgba(244, 228, 190, 0.9))" }} />;
+}
 
 export function BalanceWidget() {
   const [range, setRange] = useState<Period>("Mes");
+  const data = chartData[range];
 
   return (
-    <section className="h-full min-h-[310px] rounded-[12px] border border-[#e4e7e1] bg-white p-5 shadow-[0_1px_2px_rgba(24,52,43,0.02)] sm:p-7" aria-labelledby="balance-title">
-      <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
-        <div>
-          <p className="text-[13px] font-medium text-[#7c847f]">Dinero disponible</p>
-          <div className="mt-2 flex flex-wrap items-end gap-x-3 gap-y-2">
-            <h2 id="balance-title" className="text-[34px] font-semibold leading-none tracking-[-0.045em] text-[#1d2923] sm:text-[42px]">4.892,40 €</h2>
-            <span className="flex items-center gap-1 text-[13px] font-semibold text-[#2f7957]"><TrendingUp size={15} /> 8,4%</span>
+    <section className="relative flex h-full min-h-[360px] flex-col gap-6 overflow-hidden bg-petrol-deep p-7 text-ivory" aria-labelledby="balance-title">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_70%_at_85%_0%,rgba(221,191,138,0.16),rgba(221,191,138,0)_70%)]" />
+
+      <div className="relative flex flex-col justify-between gap-6 sm:flex-row sm:items-start">
+        <div className="flex flex-col gap-2">
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-gold">Dinero disponible</p>
+          <div className="flex flex-wrap items-baseline gap-x-3.5 gap-y-2">
+            <h2 id="balance-title" className="font-serif text-[60px] font-normal leading-[0.9] tracking-[-0.02em] lining-nums tabular-nums sm:text-[76px]">4.892,40 €</h2>
+            <span className="flex items-center gap-1 bg-gold px-2 py-0.5 text-[13px] font-semibold text-petrol-deep"><TrendUpIcon size={14} aria-hidden="true" /> 8,4%</span>
           </div>
-          <p className="mt-3 text-[13px] text-[#8a918d]">+378,25 € respecto al mes pasado</p>
+          <p className="text-sm text-[#b5bdb8]">+378,25 € respecto al mes pasado</p>
         </div>
-        <div className="flex w-fit rounded-[7px] bg-[#f0f2ee] p-1" aria-label="Periodo del gráfico">
-          {["Semana", "Mes", "Año"].map((item) => (
-            <button key={item} type="button" onClick={() => setRange(item as Period)} className={`rounded-[5px] px-3 py-1.5 text-[12px] font-medium transition-colors ${range === item ? "bg-white text-[#1d3329] shadow-sm" : "text-[#7a827d] hover:text-[#314139]"}`}>{item}</button>
+        <div className="flex w-fit border border-ivory/20" role="group" aria-label="Periodo del gráfico">
+          {periods.map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={() => setRange(item)}
+              aria-pressed={range === item}
+              className={`min-h-9 px-3.5 text-xs transition-[background-color,color] duration-500 ease-[cubic-bezier(0.22,0.61,0.36,1)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-gold ${range === item ? "bg-ivory font-semibold text-primary" : "font-medium text-[#b5bdb8] hover:text-ivory"}`}
+            >
+              {item}
+            </button>
           ))}
         </div>
       </div>
-      <ChartContainer config={chartConfig} className="mt-7 h-[190px] w-full aspect-auto" aria-label={`Evolución del saldo durante el periodo: ${range}`}>
-        <AreaChart accessibilityLayer data={chartData[range]} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
-          <CartesianGrid vertical={false} strokeDasharray="3 3" />
+
+      <ChartContainer config={chartConfig} className="relative mt-auto aspect-auto h-[190px] w-full [&_.recharts-cartesian-axis-tick_text]:fill-[#8e9a96] [&_.recharts-cartesian-axis-tick_text]:font-mono [&_.recharts-cartesian-axis-tick_text]:text-[10px]" aria-label={`Evolución del saldo durante el periodo: ${range}`}>
+        <AreaChart accessibilityLayer data={data} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
+          <defs>
+            <linearGradient id="balance-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="#ddbf8a" stopOpacity={0.24} />
+              <stop offset="1" stopColor="#ddbf8a" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid vertical={false} strokeDasharray="2 6" stroke="rgba(241,233,218,0.1)" />
           <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={10} minTickGap={24} />
           <YAxis tickLine={false} axisLine={false} width={54} tickFormatter={formatCompactEuro} domain={["dataMin - 200", "dataMax + 150"]} />
-          <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" labelKey="date" formatter={(value) => <ChartTooltipRow label="Saldo" value={formatEuro(Number(value))} marker="#1f5a40" />} />} />
-          <Area dataKey="balance" type="monotone" fill="var(--color-balance)" fillOpacity={0.14} stroke="var(--color-balance)" strokeWidth={2} activeDot={{ r: 4, fill: "#1f5a40", stroke: "#ffffff", strokeWidth: 2 }} />
+          <ChartTooltip cursor={{ stroke: "rgba(241,233,218,0.25)" }} content={<ChartTooltipContent indicator="line" labelKey="date" formatter={(value) => <ChartTooltipRow label="Saldo" value={formatEuro(Number(value))} marker="#b38a4e" />} />} />
+          <Area
+            dataKey="balance"
+            type="monotone"
+            fill="url(#balance-fill)"
+            stroke="var(--color-balance)"
+            strokeWidth={1.8}
+            dot={(props: { cx?: number; cy?: number; index?: number }) => <TodayDot key={`dot-${props.index}`} {...props} length={data.length} />}
+            activeDot={{ r: 4, fill: "#f4e4be", stroke: "#15313a", strokeWidth: 2 }}
+          />
         </AreaChart>
       </ChartContainer>
-      <p className="mt-1 text-right text-[10px] text-[#9aa19d]">Escala ajustada al saldo del periodo</p>
     </section>
   );
 }

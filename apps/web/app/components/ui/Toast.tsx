@@ -1,45 +1,56 @@
 import type { AnimationEvent, ReactNode } from "react";
-import { AlertTriangle, CheckCircle2, Info, X, XCircle } from "lucide-react";
+import { CheckCircleIcon, InfoIcon, WarningIcon, XCircleIcon, XIcon } from "@phosphor-icons/react";
 import type { ToastItem } from "@/libs/notifications.js";
 import { beginExit, markVisible, remove } from "@/libs/notifications.js";
 
+/* Avisos de El hilo: el éxito llega sobre noche con su nodo de luz; el resto, sobre marfil. */
 const TYPE_META: Record<
   ToastItem["type"],
   {
     title: string;
     icon: ReactNode;
-    card: string;
-    iconSurface: string;
+    surface: string;
+    titleColor: string;
+    messageColor: string;
+    iconColor: string;
     progress: string;
   }
 > = {
   success: {
     title: "Todo en orden",
-    icon: <CheckCircle2 className="size-[18px]" strokeWidth={2.2} />,
-    card: "border-[#dce8df] bg-[#fbfdf9]",
-    iconSurface: "bg-primary text-primary-foreground",
-    progress: "bg-primary",
+    icon: <CheckCircleIcon size={18} weight="light" />,
+    surface: "bg-primary shadow-[0_24px_48px_-24px_rgba(13,26,33,0.6)]",
+    titleColor: "text-ivory",
+    messageColor: "text-[#c9c0af]",
+    iconColor: "text-gold",
+    progress: "bg-gold shadow-[0_0_8px_rgba(221,191,138,0.9)]",
   },
   error: {
     title: "Algo no ha ido bien",
-    icon: <XCircle className="size-[18px]" strokeWidth={2.2} />,
-    card: "border-[#f0d9d2] bg-[#fffaf7]",
-    iconSurface: "bg-[#9b3d2f] text-white",
-    progress: "bg-[#9b3d2f]",
+    icon: <XCircleIcon size={18} weight="light" />,
+    surface: "border border-[#ddb39c] bg-[#f6e3d8]",
+    titleColor: "text-[#5a2412]",
+    messageColor: "text-[#5a2412]",
+    iconColor: "text-danger",
+    progress: "bg-danger",
   },
   info: {
     title: "Actualización",
-    icon: <Info className="size-[18px]" strokeWidth={2.2} />,
-    card: "border-[#e7e1c7] bg-[#fffdf4]",
-    iconSurface: "bg-secondary text-secondary-foreground",
-    progress: "bg-[#c2a94f]",
+    icon: <InfoIcon size={18} weight="light" />,
+    surface: "border border-stone bg-ivory-soft shadow-[0_24px_48px_-28px_rgba(13,26,33,0.35)]",
+    titleColor: "text-ink",
+    messageColor: "text-ink-muted",
+    iconColor: "text-petrol",
+    progress: "bg-petrol",
   },
   warning: {
     title: "Tenlo en cuenta",
-    icon: <AlertTriangle className="size-[18px]" strokeWidth={2.2} />,
-    card: "border-[#ecd9b9] bg-[#fffaf0]",
-    iconSurface: "bg-[#8a6424] text-white",
-    progress: "bg-[#b98631]",
+    icon: <WarningIcon size={18} weight="light" />,
+    surface: "border border-[#dcc9a4] bg-parchment",
+    titleColor: "text-ink",
+    messageColor: "text-[#4a3a20]",
+    iconColor: "text-gold-ink",
+    progress: "bg-gold-deep",
   },
 };
 
@@ -77,21 +88,21 @@ export function Toast({ toast }: ToastProps) {
   return (
     <div
       {...a11yProps}
-      className={`pointer-events-auto relative grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 overflow-hidden rounded-notice border p-3.5 shadow-[0_18px_50px_rgba(24,52,43,0.14),0_2px_10px_rgba(24,52,43,0.06)] backdrop-blur-sm ${meta.card} ${animationClass}`}
+      className={`pointer-events-auto relative grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 overflow-hidden p-3.5 ${meta.surface} ${animationClass}`}
       onAnimationEnd={handleAnimationEnd}
     >
       <span
         aria-hidden="true"
-        className={`flex size-9 items-center justify-center rounded-control ${meta.iconSurface}`}
+        className={`flex size-8 items-center justify-center ${meta.iconColor}`}
       >
         {meta.icon}
       </span>
 
       <span className="min-w-0 pt-0.5">
-        <span className="block text-[13px] font-semibold leading-4 tracking-[-0.01em] text-[#34443d]">
+        <span className={`block text-sm font-semibold ${meta.titleColor}`}>
           {meta.title}
         </span>
-        <span className="mt-1 block text-sm font-normal leading-5 text-[#616b66]">
+        <span className={`mt-1 block text-sm font-normal ${meta.messageColor}`}>
           {toast.message}
         </span>
       </span>
@@ -100,16 +111,16 @@ export function Toast({ toast }: ToastProps) {
         type="button"
         aria-label="Cerrar notificación"
         title="Cerrar"
-        className="-mr-1 -mt-1 flex size-8 items-center justify-center rounded-control text-[#79817d] transition-colors hover:bg-black/5 hover:text-[#34443d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        className={`flex size-8 items-center justify-center opacity-70 transition-opacity duration-500 hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-deep ${meta.titleColor}`}
         onClick={() => beginExit(toast.id)}
       >
-        <X className="size-4" aria-hidden="true" />
+        <XIcon size={16} aria-hidden="true" />
       </button>
 
       {toast.state !== "exiting" ? (
         <span
           aria-hidden="true"
-          className={`toast-progress absolute inset-x-0 bottom-0 h-0.5 origin-left opacity-70 ${meta.progress}`}
+          className={`toast-progress absolute inset-x-0 bottom-0 h-px origin-left ${meta.progress}`}
           style={{ animationDuration: `${toast.duration}ms` }}
         />
       ) : null}

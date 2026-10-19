@@ -1,9 +1,11 @@
-import { Check, Plus, RotateCcw, SlidersHorizontal } from "lucide-react";
+import { ArrowCounterClockwiseIcon, CheckIcon, PlusIcon, SlidersHorizontalIcon } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
+import { PaintDefs } from "@/components/art/Paint.js";
 import { notify } from "@/libs/notifications.js";
 import { dashboardWidgetIds, type DashboardWidgetId } from "../dashboard-layout.js";
 import { useDashboardLayout } from "../hooks/useDashboardLayout.js";
 import { dashboardWidgetRegistry } from "../widgets/widget-registry.js";
+import { DashboardBackdrop } from "./DashboardBackdrop.js";
 import { DashboardHeader } from "./DashboardHeader.js";
 import { DashboardSidebar, MobileNavigation } from "./DashboardNavigation.js";
 import { DashboardWidgetGrid } from "./DashboardWidgetGrid.js";
@@ -38,25 +40,31 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f6f2] font-sans text-[#334039]">
+    <div className="relative min-h-screen bg-canvas font-sans text-ink">
+      <PaintDefs />
+      <DashboardBackdrop />
       <DashboardSidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
-      <div className="lg:pl-[264px]">
+      <div className="relative z-10 lg:pl-[248px]">
         <DashboardHeader onOpenMenu={() => setMenuOpen(true)} />
-        <main className="mx-auto max-w-[1500px] px-4 pb-28 pt-7 sm:px-7 sm:pt-9 lg:px-9 lg:pb-12">
-          <div className="mb-7 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-            <div><p className="text-[13px] font-medium text-[#728078]">Lunes, 17 de agosto</p><h1 className="mt-1 text-[28px] font-semibold tracking-[-0.04em] text-[#1d2923] sm:text-[32px]">Buenos días, Ana</h1><p className="mt-2 text-[13px] text-[#7e8782]">Aquí tienes una vista clara de cómo va tu dinero.</p></div>
+        <main className="mx-auto max-w-[1320px] px-4 pb-32 pt-8 sm:px-6 sm:pt-10 lg:px-10 lg:pb-16">
+          <div className="fx-in mb-8 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+            <div className="flex flex-col gap-1.5">
+              <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-gold-ink">Lunes, 17 de agosto</p>
+              <h1 className="font-serif text-[44px] font-normal leading-none tracking-[-0.015em] sm:text-[52px]">Buenos días, <em className="italic">Ana</em></h1>
+              <p className="mt-1 text-sm text-ink-muted">Aquí tienes una vista clara de cómo va tu dinero.</p>
+            </div>
             <div className="flex flex-wrap items-center gap-2">
-              <button type="button" onClick={() => setIsEditing((current) => !current)} className={`flex items-center gap-2 rounded-control border px-4 py-2.5 text-[12px] font-semibold transition-colors ${isEditing ? "border-[#aec1b2] bg-[#e7efe9] text-[#28563d]" : "border-[#d9dfd9] bg-white text-[#536159] hover:bg-[#f9faf8]"}`}>{isEditing ? <Check size={16} /> : <SlidersHorizontal size={16} />}{isEditing ? "Terminar" : "Personalizar"}</button>
-              <button type="button" className="action-primary flex items-center gap-2 rounded-control px-4 py-2.5 text-[12px] font-semibold"><Plus size={16} /> Añadir movimiento</button>
+              <button type="button" onClick={() => setIsEditing((current) => !current)} aria-pressed={isEditing} className="action-secondary flex min-h-11 items-center gap-2 rounded-control px-4 text-sm font-medium">{isEditing ? <CheckIcon size={16} aria-hidden="true" /> : <SlidersHorizontalIcon size={16} aria-hidden="true" />}{isEditing ? "Terminar" : "Personalizar"}</button>
+              <button type="button" className="action-primary flex min-h-11 items-center gap-2 rounded-control px-4 text-sm font-semibold"><PlusIcon size={16} aria-hidden="true" /> Añadir movimiento</button>
             </div>
           </div>
 
           {isEditing ? (
-            <section className="mb-5 flex flex-col justify-between gap-4 rounded-[11px] border border-[#d6e0d8] bg-[#edf3ee] px-4 py-4 sm:flex-row sm:items-center" aria-label="Controles de personalización">
-              <div><p className="text-[13px] font-semibold text-[#315b42]">Personaliza tu resumen</p><p className="mt-1 text-[12px] text-[#718078]">Arrastra, mueve o ajusta el ancho de cada widget. Los límites protegen la legibilidad y los cambios se guardan en este dispositivo.</p></div>
+            <section className="fx-in mb-6 flex flex-col justify-between gap-4 border border-[#dcc9a4] bg-parchment p-4 sm:flex-row sm:items-center" aria-label="Controles de personalización">
+              <div className="flex flex-col gap-1"><p className="text-sm font-semibold text-ink">Personaliza tu resumen</p><p className="max-w-[560px] text-xs text-[#4a3a20]">Arrastra, mueve o ajusta el ancho de cada widget. Los límites protegen la legibilidad y los cambios se guardan en este dispositivo.</p></div>
               <div className="flex flex-wrap gap-2">
-                <button type="button" onClick={() => setCatalogOpen(true)} className="flex items-center gap-2 rounded-[7px] border border-[#cbd8ce] bg-white px-3 py-2 text-[12px] font-semibold text-[#315f45] hover:bg-[#f8faf8]"><Plus size={15} /> Añadir widgets{hiddenWidgetCount > 0 ? ` (${hiddenWidgetCount})` : ""}</button>
-                <button type="button" onClick={resetLayout} className="flex items-center gap-2 rounded-[7px] px-3 py-2 text-[12px] font-medium text-[#647169] hover:bg-white/65"><RotateCcw size={14} /> Restablecer</button>
+                <button type="button" onClick={() => setCatalogOpen(true)} className="action-primary flex min-h-11 items-center gap-2 rounded-control px-4 text-sm font-semibold"><PlusIcon size={16} aria-hidden="true" /> Añadir widgets{hiddenWidgetCount > 0 ? ` (${hiddenWidgetCount})` : ""}</button>
+                <button type="button" onClick={resetLayout} className="action-secondary flex min-h-11 items-center gap-2 rounded-control border-transparent px-4 text-sm font-medium"><ArrowCounterClockwiseIcon size={16} aria-hidden="true" /> Restablecer</button>
               </div>
             </section>
           ) : null}

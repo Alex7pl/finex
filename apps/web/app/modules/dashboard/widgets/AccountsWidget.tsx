@@ -1,13 +1,32 @@
-import { CreditCard, Plus, WalletCards } from "lucide-react";
+import { PlusIcon } from "@phosphor-icons/react";
+
+const accounts = [
+  { name: "Cuenta principal", mask: "•••• 4821", balance: "3.742,40 €" },
+  { name: "Ahorro", mask: "•••• 1098", balance: "1.150,00 €" },
+];
 
 export function AccountsWidget() {
   return (
-    <section className="h-full min-h-[270px] rounded-[12px] border border-[#e4e7e1] bg-white p-5 sm:p-6" aria-labelledby="accounts-title">
-      <div className="flex items-center justify-between"><h2 id="accounts-title" className="text-[17px] font-semibold tracking-[-0.02em] text-[#26322c]">Mis cuentas</h2><button type="button" aria-label="Añadir cuenta" className="grid size-8 place-items-center rounded-[7px] border border-[#dfe4de] text-[#356148] hover:bg-[#f2f5f1]"><Plus size={16} /></button></div>
-      <div className="mt-5 space-y-3">
-        <div className="flex items-center gap-3 rounded-[9px] bg-[#f6f7f4] p-3.5"><div className="grid size-9 place-items-center rounded-[8px] bg-[#e2ebe5] text-[#1f5a40]"><WalletCards size={17} /></div><div className="min-w-0 flex-1"><p className="text-[12px] font-semibold text-[#3b4640]">Cuenta principal</p><p className="mt-0.5 text-[11px] text-[#929995]">•••• 4821</p></div><strong className="text-[13px] text-[#354039]">3.742,40 €</strong></div>
-        <div className="flex items-center gap-3 rounded-[9px] p-3.5"><div className="grid size-9 place-items-center rounded-[8px] bg-[#f1ece3] text-[#8a6832]"><CreditCard size={17} /></div><div className="min-w-0 flex-1"><p className="text-[12px] font-semibold text-[#3b4640]">Ahorro</p><p className="mt-0.5 text-[11px] text-[#929995]">•••• 1098</p></div><strong className="text-[13px] text-[#354039]">1.150,00 €</strong></div>
+    <section className="flex h-full min-h-[300px] flex-col gap-4 bg-ivory-soft p-7" aria-labelledby="accounts-title">
+      <div className="flex items-center justify-between gap-2">
+        <h2 id="accounts-title" className="text-[15px] font-semibold text-ink">Mis cuentas</h2>
+        <button type="button" aria-label="Añadir cuenta" className="action-secondary grid size-9 place-items-center rounded-control"><PlusIcon size={14} aria-hidden="true" /></button>
       </div>
+      <div role="img" aria-label="Reparto del saldo: 76% en la cuenta principal y 24% en ahorro" className="flex h-1.5 gap-0.5">
+        <span className="bg-primary" style={{ flex: "76 1 0" }} />
+        <span className="bg-gold-deep" style={{ flex: "24 1 0" }} />
+      </div>
+      <ul className="mt-auto flex flex-col">
+        {accounts.map(({ name, mask, balance }, index) => (
+          <li key={mask} className={`flex items-center justify-between gap-3 py-3 ${index < accounts.length - 1 ? "border-b border-stone-line" : ""}`}>
+            <span className="flex items-center gap-3">
+              <span aria-hidden="true" className={`size-2 ${index === 0 ? "bg-primary" : "bg-gold-deep"}`} />
+              <span className="flex flex-col"><strong className="text-[13px] font-semibold text-ink">{name}</strong><span className="font-mono text-[11px] text-ink-muted">{mask}</span></span>
+            </span>
+            <strong className="text-sm font-semibold tabular-nums text-ink">{balance}</strong>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

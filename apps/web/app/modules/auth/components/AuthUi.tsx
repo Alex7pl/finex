@@ -67,7 +67,7 @@ function AuthFieldLabel({
     <label
       {...props}
       htmlFor={controlId}
-      className={`mb-2 block text-sm font-medium text-surface-heading ${className}`}
+      className={`mb-2 block text-xs font-semibold text-surface-heading ${className}`}
     />
   );
 }
@@ -88,7 +88,7 @@ function AuthFieldControl({
       id={controlId}
       aria-invalid={Boolean(error)}
       aria-describedby={describedBy}
-      className={`h-12 w-full rounded-control border bg-white px-4 text-base text-surface-heading outline-none transition placeholder:text-muted/55 focus:border-primary focus:ring-3 focus:ring-primary/10 ${error ? "border-red-400" : "border-border"} ${className}`}
+      className={`field h-12 w-full px-4 text-base ${className}`}
     />
   );
 }
@@ -110,7 +110,7 @@ function AuthFieldError(props: HTMLAttributes<HTMLParagraphElement>) {
     <p
       {...props}
       id={errorId}
-      className={`mt-2 text-sm text-red-700 ${props.className ?? ""}`}
+      className={`mt-2 text-sm text-danger ${props.className ?? ""}`}
     >
       {error}
     </p>
@@ -155,7 +155,7 @@ export function PasswordField({
       <button
         type="button"
         onClick={() => setVisible((value) => !value)}
-        className="absolute right-3 top-[38px] grid h-9 w-9 place-items-center rounded-control text-muted transition hover:bg-background hover:text-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/15"
+        className="absolute right-3 top-[38px] grid h-9 w-9 place-items-center rounded-control text-muted transition hover:bg-[#eae2d2] hover:text-primary focus-visible:outline-2 focus-visible:outline-gold-deep"
         aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
         aria-pressed={visible}
       >
@@ -170,7 +170,7 @@ export function SubmitButton({ pending, children }: { pending: boolean; children
     <button
       type="submit"
       disabled={pending}
-      className="action-primary flex h-13 w-full items-center justify-center gap-2 rounded-control px-6 font-medium disabled:cursor-not-allowed disabled:opacity-65"
+      className="action-primary flex h-12 w-full items-center justify-center gap-2 rounded-control px-6 font-semibold disabled:cursor-not-allowed disabled:opacity-65"
     >
       {pending ? <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden="true" /> : null}
       {pending ? "Un momento…" : children}
@@ -179,5 +179,5 @@ export function SubmitButton({ pending, children }: { pending: boolean; children
 }
 
 export function FormAlert({ children }: { children?: ReactNode }) {
-  return children ? <div role="alert" className="rounded-notice border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-800">{children}</div> : null;
+  return children ? <div role="alert" className="rounded-notice border border-[#ddb39c] bg-[#f6e3d8] px-4 py-3 text-sm leading-6 text-[#5a2412]">{children}</div> : null;
 }

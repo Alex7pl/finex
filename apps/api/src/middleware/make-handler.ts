@@ -1,22 +1,36 @@
-import { Cause, Effect, Exit, Option } from "effect";
-import type { Request, RequestHandler, Response, NextFunction } from "express";
+import { TransactionNotFound } from "@finex/shared/transactions/transactions.errors.js";
+import {
+  UserAlreadyExists,
+  UserNotFound,
+} from "@finex/shared/auth/auth.errors.js";
 import {
   UnauthorizedError,
   ValidationError,
   type HttpErrorResponse,
 } from "@finex/shared/errors.js";
-import { UserAlreadyExists, UserNotFound } from "@finex/shared/auth/auth.errors.js";
+import { Cause, Effect, Exit, Option } from "effect";
+import type { NextFunction, Request, RequestHandler, Response } from "express";
+import { AccountNotFound } from "~/packages/shared/dist/accounts/accounts.errors.js";
 import type { AuthenticatedUser } from "../runtime/request-context.js";
+import { runProtected, runPublic } from "../runtime/run-request.js";
 import { DatabaseError } from "../shared/errors.js";
-import { runPublic, runProtected, type RequestData } from "../runtime/run-request.js";
 
-type AppError = UnauthorizedError | ValidationError | UserNotFound | UserAlreadyExists | DatabaseError;
+type AppError =
+  | UnauthorizedError
+  | ValidationError
+  | UserNotFound
+  | UserAlreadyExists
+  | TransactionNotFound
+  | AccountNotFound
+  | DatabaseError;
 
 const STATUS: Record<AppError["_tag"], number> = {
   UnauthorizedError: 401,
   ValidationError: 400,
   UserNotFound: 404,
   UserAlreadyExists: 409,
+  AccountNotFound: 404,
+  TransactionNotFound: 404,
   DatabaseError: 500,
 };
 
@@ -59,8 +73,8 @@ type EffectHandler<A, E, R> = (
 
 export function makeHandler(run: RunFn) {
   return <A, E extends AppError, R>(
-    handler: EffectHandler<A, E, R>,
-  ): RequestHandler =>
+      handler: EffectHandler<A, E, R>,
+    ): RequestHandler =>
     async (req: Request, res: Response, next: NextFunction) => {
       const ctx: HandlerCtx = {
         requestId: res.locals.requestId,

@@ -23,16 +23,24 @@ test("HomePage preserves its static landmarks, content, assets, and auth slot or
   assert.match(html, /<nav aria-label="Principal"/);
   assert.match(html, /Iniciar sesión/);
   assert.match(html, /Registrarse/);
-  assert.match(html, /src="\/hero-background\.mp4"/);
-  assert.match(html, /aria-label="Animación abstracta de fondo"/);
-  assert.match(html, /Digitaliza tus<br\/>finanzas/);
+  assert.match(html, /src="\/landing-video\.mp4"/);
+  assert.match(html, /poster="\/landing-video-poster\.jpg"/);
+  assert.match(html, /aria-label="Escena pintada: una figura en la llanura sostiene el hilo de un orbe dorado"/);
+  assert.match(html, /Sostén el hilo <em class="italic text-gold">de tu dinero\.<\/em>/);
   assert.match(html, /FineX usa inteligencia artificial/);
-  assert.match(html, /Noticias/);
-  assert.match(html, /Asistente IA/);
-  assert.match(html, /src="\/jakub-zerdzicki-U4-I4oH4xlg-unsplash\.jpg"/);
-  assert.match(html, /alt="Visualización abstracta de datos financieros"/);
-  assert.ok(html.indexOf("hero-background.mp4") < html.indexOf("data-auth-slot"));
-  assert.ok(html.indexOf("data-auth-slot") < html.indexOf("Digitaliza tus"));
+  assert.match(html, /Tres gestos, un solo hilo/);
+  assert.match(html, /Todo tu dinero, en/);
+  assert.ok(html.indexOf("landing-video.mp4") < html.indexOf("data-auth-slot"));
+  assert.ok(html.indexOf("data-auth-slot") < html.indexOf("Sostén el hilo"));
+});
+
+test("HomePage renders the hero CTA and the word-by-word tagline", () => {
+  const html = render(false);
+
+  assert.match(html, /Crear mi cuenta/);
+  assert.match(html, /Saltar al contenido/);
+  assert.equal((html.match(/class="fx-word"/g) ?? []).length, 9);
+  assert.match(html, /accionables\./);
 });
 
 test("HomePage preserves the auth-open visual state class", () => {

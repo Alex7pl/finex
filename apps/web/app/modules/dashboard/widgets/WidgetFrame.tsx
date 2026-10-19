@@ -1,5 +1,6 @@
-import { ArrowLeft, ArrowRight, GripVertical, Maximize2, Minimize2, X } from "lucide-react";
+import { ArrowLeftIcon, ArrowRightIcon, ArrowsInSimpleIcon, ArrowsOutSimpleIcon, DotsSixVerticalIcon, XIcon } from "@phosphor-icons/react";
 import type { DragEvent, ReactNode } from "react";
+import { cn } from "@/lib/utils";
 import type { DashboardWidgetId } from "../dashboard-layout.js";
 
 interface WidgetFrameProps {
@@ -24,12 +25,14 @@ interface WidgetFrameProps {
   onRemove: () => void;
 }
 
+const toolClassName = "grid size-8 place-items-center text-ink-muted transition-[background-color,color,transform] duration-500 ease-[cubic-bezier(0.22,0.61,0.36,1)] hover:bg-[#eae2d2] hover:text-ink active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-gold-deep";
+
 export function WidgetFrame({ id, title, className, isEditing, isDragging, canMovePrevious, canMoveNext, canShrink, canGrow, sizeLabel, children, onDragStart, onDragEnter, onDragEnd, onMovePrevious, onMoveNext, onShrink, onGrow, onRemove }: WidgetFrameProps) {
   return (
     <div
       data-widget-id={id}
       data-widget-size={sizeLabel}
-      className={`${className} relative min-w-0 transition-[opacity,transform] duration-150 ${isDragging ? "scale-[0.985] opacity-45" : ""} ${isEditing ? "rounded-[14px] ring-2 ring-[#7fa58c]/45 ring-offset-2 ring-offset-[#f5f6f2]" : ""}`}
+      className={`${className} fx-cell relative min-w-0 transition-[opacity,transform] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${isDragging ? "scale-[0.985] opacity-45" : ""} ${isEditing ? "outline-1 -outline-offset-8 outline-dashed outline-gold-deep/70" : ""}`}
       onDragEnter={(event) => {
         if (!isEditing) return;
         event.preventDefault();
@@ -40,16 +43,16 @@ export function WidgetFrame({ id, title, className, isEditing, isDragging, canMo
       }}
     >
       {isEditing ? (
-        <div className="absolute right-2 top-2 z-10 flex items-center rounded-[8px] border border-[#d9e1da] bg-white p-1 shadow-[0_6px_18px_rgba(24,52,43,0.12)]">
-          <button type="button" draggable onDragStart={(event) => onDragStart(event, id)} onDragEnd={onDragEnd} className="grid size-8 cursor-grab place-items-center rounded-[6px] text-[#68766e] hover:bg-[#eef2ed] active:cursor-grabbing" aria-label={`Arrastrar ${title}`} title="Arrastrar widget"><GripVertical size={16} /></button>
-          <span className="mx-1 h-5 w-px bg-[#e5e9e4]" />
-          <button type="button" onClick={onMovePrevious} disabled={!canMovePrevious} className="grid size-8 place-items-center rounded-[6px] text-[#68766e] hover:bg-[#eef2ed] disabled:cursor-not-allowed disabled:opacity-30" aria-label={`Mover ${title} hacia atrás`}><ArrowLeft size={15} /></button>
-          <button type="button" onClick={onMoveNext} disabled={!canMoveNext} className="grid size-8 place-items-center rounded-[6px] text-[#68766e] hover:bg-[#eef2ed] disabled:cursor-not-allowed disabled:opacity-30" aria-label={`Mover ${title} hacia delante`}><ArrowRight size={15} /></button>
-          <span className="mx-1 h-5 w-px bg-[#e5e9e4]" />
-          <button type="button" onClick={onShrink} disabled={!canShrink} className="grid size-8 place-items-center rounded-[6px] text-[#526d5d] hover:bg-[#eef2ed] disabled:cursor-not-allowed disabled:opacity-30" aria-label={`Reducir ${title}; tamaño actual ${sizeLabel}`} title="Reducir widget"><Minimize2 size={15} /></button>
-          <button type="button" onClick={onGrow} disabled={!canGrow} className="grid size-8 place-items-center rounded-[6px] text-[#526d5d] hover:bg-[#eef2ed] disabled:cursor-not-allowed disabled:opacity-30" aria-label={`Ampliar ${title}; tamaño actual ${sizeLabel}`} title="Ampliar widget"><Maximize2 size={15} /></button>
-          <span className="mx-1 h-5 w-px bg-[#e5e9e4]" />
-          <button type="button" onClick={onRemove} className="grid size-8 place-items-center rounded-[6px] text-[#9a5a50] hover:bg-[#fbefec]" aria-label={`Quitar ${title} del dashboard`}><X size={15} /></button>
+        <div role="toolbar" aria-label={`Opciones de ${title}`} className="absolute right-3 top-3 z-10 flex items-center gap-0.5 border border-border bg-ivory-soft p-1 shadow-[0_16px_32px_-16px_rgba(13,26,33,0.4)]">
+          <button type="button" draggable onDragStart={(event) => onDragStart(event, id)} onDragEnd={onDragEnd} className={cn(toolClassName, "cursor-grab active:cursor-grabbing")} aria-label={`Arrastrar ${title}`} title="Arrastrar widget"><DotsSixVerticalIcon size={16} aria-hidden="true" /></button>
+          <span className="mx-1 h-4 w-px bg-border" aria-hidden="true" />
+          <button type="button" onClick={onMovePrevious} disabled={!canMovePrevious} className={toolClassName} aria-label={`Mover ${title} hacia atrás`}><ArrowLeftIcon size={16} aria-hidden="true" /></button>
+          <button type="button" onClick={onMoveNext} disabled={!canMoveNext} className={toolClassName} aria-label={`Mover ${title} hacia delante`}><ArrowRightIcon size={16} aria-hidden="true" /></button>
+          <span className="mx-1 h-4 w-px bg-border" aria-hidden="true" />
+          <button type="button" onClick={onShrink} disabled={!canShrink} className={toolClassName} aria-label={`Reducir ${title}; tamaño actual ${sizeLabel}`} title="Reducir widget"><ArrowsInSimpleIcon size={16} aria-hidden="true" /></button>
+          <button type="button" onClick={onGrow} disabled={!canGrow} className={toolClassName} aria-label={`Ampliar ${title}; tamaño actual ${sizeLabel}`} title="Ampliar widget"><ArrowsOutSimpleIcon size={16} aria-hidden="true" /></button>
+          <span className="mx-1 h-4 w-px bg-border" aria-hidden="true" />
+          <button type="button" onClick={onRemove} className={cn(toolClassName, "text-danger hover:bg-danger/10 hover:text-danger")} aria-label={`Quitar ${title} del dashboard`}><XIcon size={16} aria-hidden="true" /></button>
         </div>
       ) : null}
       {children}

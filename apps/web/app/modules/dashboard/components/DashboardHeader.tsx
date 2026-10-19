@@ -1,14 +1,23 @@
-import { Bell, CalendarDays, ChevronDown, Menu, Search } from "lucide-react";
+import { BellIcon, CalendarBlankIcon, CaretDownIcon, ListIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
+
+const control = "action-secondary flex h-10 items-center rounded-control";
 
 export function DashboardHeader({ onOpenMenu }: { onOpenMenu: () => void }) {
   return (
-    <header className="sticky top-0 z-20 flex h-[72px] items-center gap-3 border-b border-[#e2e6df] bg-[#f5f6f2]/90 px-4 backdrop-blur-md sm:px-7 lg:px-9">
-      <button type="button" onClick={onOpenMenu} className="grid size-9 shrink-0 place-items-center rounded-[7px] border border-[#dfe4de] text-[#57625c] lg:hidden" aria-label="Abrir menú"><Menu size={18} /></button>
-      <div className="relative hidden max-w-[300px] flex-1 md:block"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a938e]" /><input aria-label="Buscar movimientos" placeholder="Buscar movimientos..." className="h-9 w-full rounded-[7px] border border-[#e0e4de] bg-white/70 pl-9 pr-3 text-[12px] text-[#37443d] outline-none placeholder:text-[#a0a6a2] focus:border-[#9fb5a7] focus:ring-2 focus:ring-[#dfe9e2]" /></div>
-      <div className="ml-auto flex items-center gap-2 sm:gap-3">
-        <button type="button" className="hidden items-center gap-2 rounded-[7px] border border-[#dfe4de] bg-white px-3 py-2 text-[12px] font-medium text-[#4c5952] hover:bg-[#f8faf7] sm:flex"><CalendarDays size={15} /> Agosto 2026 <ChevronDown size={14} /></button>
-        <button type="button" className="relative grid size-9 place-items-center rounded-[7px] border border-[#dfe4de] bg-white text-[#5d6862] hover:bg-[#f8faf7]" aria-label="Notificaciones"><Bell size={17} /><span className="absolute right-2 top-2 size-1.5 rounded-full bg-[#d4715d]" /></button>
-        <button type="button" className="flex items-center gap-2 rounded-[7px] py-1 pl-1 pr-1 sm:pr-2" aria-label="Abrir perfil de Ana López"><span className="grid size-8 place-items-center rounded-[7px] bg-[#254f3b] text-[11px] font-semibold text-white">AL</span><span className="hidden text-left sm:block"><strong className="block text-[12px] font-semibold text-[#3a453f]">Ana López</strong><small className="block text-[10px] text-[#8c938f]">Cuenta personal</small></span><ChevronDown size={14} className="hidden text-[#7d8681] sm:block" /></button>
+    <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-border bg-canvas/92 px-4 py-3.5 backdrop-blur-sm sm:px-6 lg:px-10">
+      <button type="button" onClick={onOpenMenu} className={`${control} size-10 shrink-0 justify-center lg:hidden`} aria-label="Abrir menú"><ListIcon size={18} aria-hidden="true" /></button>
+      <label className="field hidden h-10 max-w-[340px] flex-1 items-center gap-2.5 px-3 text-ink-muted md:flex">
+        <MagnifyingGlassIcon size={16} aria-hidden="true" />
+        <input aria-label="Buscar movimientos" placeholder="Buscar movimientos" className="h-full min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-[#8a8478]" />
+        <kbd className="border border-border px-1.5 py-0.5 font-mono text-[11px] text-ink-muted">⌘K</kbd>
+      </label>
+      <div className="ml-auto flex items-center gap-2">
+        <button type="button" className={`${control} hidden gap-2 px-3 text-[13px] font-medium sm:flex`}><CalendarBlankIcon size={16} weight="light" aria-hidden="true" /> Agosto 2026 <CaretDownIcon size={12} aria-hidden="true" /></button>
+        <button type="button" className={`${control} relative size-10 justify-center`} aria-label="Notificaciones"><BellIcon size={18} weight="light" aria-hidden="true" /><span aria-hidden="true" className="absolute right-2.5 top-2 size-1.5 bg-terracotta" /></button>
+        <button type="button" className={`${control} gap-2.5 py-1 pl-1 pr-1 sm:pr-3`} aria-label="Abrir perfil de Ana López">
+          <span className="grid size-8 place-items-center rounded-[999px_999px_0_0] bg-primary font-serif text-base text-ivory">AL</span>
+          <span className="hidden text-left sm:block"><strong className="block text-xs font-semibold text-ink">Ana López</strong><small className="block text-xs text-ink-muted">Cuenta personal</small></span>
+        </button>
       </div>
     </header>
   );

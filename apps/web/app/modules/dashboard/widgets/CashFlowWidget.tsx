@@ -1,35 +1,31 @@
-import { ArrowDownLeft, ArrowUpRight, MoreHorizontal } from "lucide-react";
-import { Bar, BarChart, XAxis, YAxis } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart.js";
-import { ChartTooltipRow, formatEuro } from "./chart-utils.js";
+import { formatEuro } from "./chart-utils.js";
 
-const cashFlowData = [{ period: "Agosto", expenses: 1913.28, available: 1326.72 }];
-const chartConfig = {
-  expenses: { label: "Gastado", color: "#d9a45f" },
-  available: { label: "Disponible", color: "#b9df95" },
-} satisfies ChartConfig;
+const income = 3240;
+const expenses = 1913.28;
+const available = income - expenses;
+const spentPercent = Math.round((expenses / income) * 100);
 
 export function CashFlowWidget() {
   return (
-    <section className="h-full min-h-[270px] rounded-[12px] border border-[#e4e7e1] bg-[#183d2d] p-5 text-white sm:p-6" aria-labelledby="cash-flow-title">
-      <div className="flex items-center justify-between">
-        <p id="cash-flow-title" className="text-[13px] font-medium text-[#c1d2c8]">Balance de agosto</p>
-        <button type="button" aria-label="Más opciones de balance"><MoreHorizontal size={19} className="text-[#b8c9bf]" /></button>
+    <section className="flex h-full min-h-[300px] flex-col gap-4 bg-ivory-soft p-7" aria-labelledby="cash-flow-title">
+      <h2 id="cash-flow-title" className="font-mono text-[11px] font-normal uppercase tracking-[0.14em] text-ink-muted">Balance de agosto</h2>
+      <p className="font-serif text-[48px] leading-none tracking-[-0.015em] lining-nums tabular-nums text-ink">+1.326,72 €</p>
+      <div
+        role="img"
+        aria-label={`De ${formatEuro(income)} de ingresos se ha gastado el ${spentPercent}% y queda disponible el ${100 - spentPercent}%`}
+        className="flex h-2.5 gap-0.5"
+      >
+        <div className="bg-terracotta" style={{ flex: `${expenses} 1 0` }} />
+        <div className="bg-petrol" style={{ flex: `${available} 1 0` }} />
       </div>
-      <p className="mt-3 text-[28px] font-semibold tracking-[-0.04em]">+1.326,72 €</p>
-      <ChartContainer config={chartConfig} className="mt-5 h-[34px] w-full aspect-auto" aria-label="Composición de los ingresos de agosto entre gastos y dinero disponible">
-        <BarChart accessibilityLayer data={cashFlowData} layout="vertical" margin={{ left: 0, right: 0, top: 8, bottom: 8 }}>
-          <XAxis type="number" hide domain={[0, 3240]} />
-          <YAxis type="category" dataKey="period" hide />
-          <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel formatter={(value, name) => <ChartTooltipRow label={name === "expenses" ? "Gastado" : "Disponible"} value={formatEuro(Number(value))} marker={name === "expenses" ? "#d9a45f" : "#b9df95"} />} />} />
-          <Bar dataKey="expenses" stackId="cash" fill="var(--color-expenses)" radius={[5, 0, 0, 5]} />
-          <Bar dataKey="available" stackId="cash" fill="var(--color-available)" radius={[0, 5, 5, 0]} />
-        </BarChart>
-      </ChartContainer>
-      <div className="mt-6 grid grid-cols-2 gap-4 border-t border-white/10 pt-5">
-        <div><span className="flex items-center gap-1.5 text-[12px] text-[#b9cac0]"><ArrowDownLeft size={14} /> Ingresos</span><strong className="mt-1.5 block text-[16px] font-semibold">3.240,00 €</strong></div>
-        <div><span className="flex items-center gap-1.5 text-[12px] text-[#b9cac0]"><ArrowUpRight size={14} /> Gastos</span><strong className="mt-1.5 block text-[16px] font-semibold">1.913,28 €</strong></div>
+      <div className="flex justify-between text-xs text-ink-muted">
+        <span className="flex items-center gap-1.5"><span aria-hidden="true" className="size-2 bg-terracotta" />Gastado {spentPercent}%</span>
+        <span className="flex items-center gap-1.5"><span aria-hidden="true" className="size-2 bg-petrol" />Disponible {100 - spentPercent}%</span>
       </div>
+      <dl className="mt-auto grid grid-cols-2 border-t border-stone-line">
+        <div className="pt-3.5"><dt className="text-xs text-ink-muted">Ingresos</dt><dd className="mt-1 text-base font-semibold tabular-nums text-ink">3.240,00 €</dd></div>
+        <div className="border-l border-stone-line pl-4 pt-3.5"><dt className="text-xs text-ink-muted">Gastos</dt><dd className="mt-1 text-base font-semibold tabular-nums text-ink">1.913,28 €</dd></div>
+      </dl>
     </section>
   );
 }
