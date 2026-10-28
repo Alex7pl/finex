@@ -1,21 +1,23 @@
+import type { DashboardWidgetProps } from "../dashboard.types.js";
 import type { ComponentType } from "react";
 import type { Icon } from "@phosphor-icons/react";
 import {
   ChartLineUpIcon,
-  LightbulbIcon,
   ListChecksIcon,
   PiggyBankIcon,
   ReceiptIcon,
   TargetIcon,
   WalletIcon,
 } from "@phosphor-icons/react";
-import type { DashboardWidgetId, DashboardWidgetSize } from "../dashboard-layout.js";
+import type {
+  DashboardWidgetId,
+  DashboardWidgetSize,
+} from "../dashboard-layout.js";
 import { AccountsWidget } from "./AccountsWidget.js";
 import { BalanceWidget } from "./BalanceWidget.js";
 import { BudgetsWidget } from "./BudgetsWidget.js";
 import { CashFlowWidget } from "./CashFlowWidget.js";
 import { GoalWidget } from "./GoalWidget.js";
-import { InsightWidget } from "./InsightWidget.js";
 import { TransactionsWidget } from "./TransactionsWidget.js";
 
 export interface DashboardWidgetDefinition {
@@ -23,10 +25,13 @@ export interface DashboardWidgetDefinition {
   title: string;
   description: string;
   icon: Icon;
-  component: ComponentType;
+  component: ComponentType<DashboardWidgetProps>;
 }
 
-export const dashboardWidgetSizeClassNames: Record<DashboardWidgetSize, string> = {
+export const dashboardWidgetSizeClassNames: Record<
+  DashboardWidgetSize,
+  string
+> = {
   standard: "xl:col-span-4",
   wide: "md:col-span-2 xl:col-span-8",
   full: "md:col-span-2 xl:col-span-12",
@@ -38,20 +43,16 @@ export const dashboardWidgetSizeLabels: Record<DashboardWidgetSize, string> = {
   full: "completo",
 };
 
-export const dashboardWidgetRegistry: Record<DashboardWidgetId, DashboardWidgetDefinition> = {
+export const dashboardWidgetRegistry: Record<
+  DashboardWidgetId,
+  DashboardWidgetDefinition
+> = {
   balance: {
     id: "balance",
     title: "Dinero disponible",
     description: "Saldo consolidado y evolución del periodo.",
     icon: ChartLineUpIcon,
     component: BalanceWidget,
-  },
-  insight: {
-    id: "insight",
-    title: "Insight de FineX",
-    description: "Una recomendación prioritaria basada en tus hábitos.",
-    icon: LightbulbIcon,
-    component: InsightWidget,
   },
   "cash-flow": {
     id: "cash-flow",

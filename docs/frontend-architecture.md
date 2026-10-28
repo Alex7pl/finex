@@ -176,16 +176,19 @@ llamar a Express.
 - No añadir Redux, Zustand o una caché cliente sin una necesidad demostrada que
   React Router no cubra.
 
-## Rutas privadas futuras
+## Rutas privadas
 
-Al crear `/app`, se añadirá una frontera de autenticación reutilizable y un
-endpoint de usuario actual. No se debe confiar en que el loader de un layout
-termine antes que sus loaders hijos: React Router puede ejecutarlos en paralelo.
+El loader de `/dashboard` se autentica mediante `GET /users/me`, conserva las
+cookies de sesión y las reutiliza en sus consultas posteriores. `AuthLayout`
+compone el `Outlet` y no lanza una segunda comprobación paralela de sesión.
 
-La protección deberá implementarse con middleware de servidor antes de los
-loaders o llamando explícitamente a `requireUser` en cada loader/action privado.
-El refresh compartido de `http.server.ts` evita rotaciones duplicadas cuando
-varias cargas concurrentes usan el mismo refresh token.
+Cada nuevo loader/action privado debe proteger su propia petición: React Router
+puede ejecutar loaders padre e hijo en paralelo. Las mutations siguen pasando
+por `routeAction` y por la autorización de Express. El refresh compartido de
+`http.server.ts` evita rotaciones duplicadas dentro del mismo cliente BFF.
+
+La conexión del dashboard, sus filtros y las APIs utilizadas se documentan en
+[dashboard-api-integration.md](dashboard-api-integration.md).
 
 ## Configuración
 
