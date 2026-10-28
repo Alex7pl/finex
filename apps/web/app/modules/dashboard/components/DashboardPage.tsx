@@ -6,6 +6,7 @@ import { TransactionDialog } from "./TransactionDialog.js";
 import {
   ArrowCounterClockwiseIcon,
   CheckIcon,
+  ListIcon,
   PlusIcon,
   SlidersHorizontalIcon,
 } from "@phosphor-icons/react";
@@ -19,7 +20,6 @@ import {
 import { useDashboardLayout } from "../hooks/useDashboardLayout.js";
 import { dashboardWidgetRegistry } from "../widgets/widget-registry.js";
 import { DashboardBackdrop } from "./DashboardBackdrop.js";
-import { DashboardHeader } from "./DashboardHeader.js";
 import { DashboardSidebar, MobileNavigation } from "./DashboardNavigation.js";
 import { DashboardWidgetGrid } from "./DashboardWidgetGrid.js";
 import { WidgetCatalog } from "./WidgetCatalog.js";
@@ -72,13 +72,16 @@ export function DashboardPage({ dashboard }: { dashboard: DashboardData }) {
     <div className="relative min-h-screen bg-canvas font-sans text-ink">
       <PaintDefs />
       <DashboardBackdrop />
-      <DashboardSidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <DashboardSidebar
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        user={dashboard.user}
+        onOpenProfile={() => {
+          setMenuOpen(false);
+          setProfileOpen(true);
+        }}
+      />
       <div className="relative z-10 lg:pl-[248px]">
-        <DashboardHeader
-          dashboard={dashboard}
-          onOpenMenu={() => setMenuOpen(true)}
-          onOpenProfile={() => setProfileOpen(true)}
-        />
         <main
           aria-busy={navigation.state !== "idle"}
           className="mx-auto max-w-[1320px] px-4 pb-32 pt-8 sm:px-6 sm:pt-10 lg:px-10 lg:pb-16"
@@ -101,6 +104,15 @@ export function DashboardPage({ dashboard }: { dashboard: DashboardData }) {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setMenuOpen(true)}
+                aria-label="Abrir menú"
+                aria-expanded={menuOpen}
+                className="action-secondary grid size-11 place-items-center rounded-control lg:hidden"
+              >
+                <ListIcon size={18} aria-hidden="true" />
+              </button>
               <button
                 type="button"
                 onClick={() => setIsEditing((current) => !current)}
@@ -170,7 +182,10 @@ export function DashboardPage({ dashboard }: { dashboard: DashboardData }) {
           />
         </main>
       </div>
-      <MobileNavigation />
+      <MobileNavigation
+        user={dashboard.user}
+        onOpenProfile={() => setProfileOpen(true)}
+      />
       {navigation.state !== "idle" ? (
         <p
           role="status"

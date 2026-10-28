@@ -1,15 +1,13 @@
 import {
-  GearIcon,
   PiggyBankIcon,
-  QuestionIcon,
   ReceiptIcon,
-  SignOutIcon,
   SquaresFourIcon,
   TargetIcon,
   WalletIcon,
   XIcon,
 } from "@phosphor-icons/react";
 import { Orb, PaintTexture } from "@/components/art/Paint.js";
+import type { UserProfile } from "@finex/shared/users/users.schema.js";
 
 const navItems = [
   { label: "Resumen", icon: SquaresFourIcon, active: true },
@@ -30,6 +28,50 @@ const fluid =
   "transition-[background-color,color,transform] duration-500 ease-[cubic-bezier(0.22,0.61,0.36,1)] active:scale-[0.985] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-gold";
 const activeItem = "bg-ivory/8 font-medium text-ivory";
 const idleItem = "text-[#a9b2af] hover:bg-ivory/6 hover:text-ivory";
+
+function ProfileButton({
+  user,
+  onOpenProfile,
+  compact = false,
+}: {
+  user: UserProfile;
+  onOpenProfile: () => void;
+  compact?: boolean;
+}) {
+  const initials = user.username
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => Array.from(word)[0])
+    .join("")
+    .toLocaleUpperCase("es-ES");
+
+  return (
+    <button
+      type="button"
+      onClick={onOpenProfile}
+      aria-label={`Abrir perfil de ${user.username}`}
+      className={`${fluid} ${idleItem} ${compact ? "flex min-w-0 flex-col items-center gap-1 py-2 text-xs" : "flex min-h-14 w-full items-center gap-3 border-t border-ivory/10 px-3 pt-3 text-left"}`}
+    >
+      <span
+        aria-hidden="true"
+        className={`grid shrink-0 place-items-center rounded-[999px_999px_0_0] bg-ivory/10 font-serif text-ivory ${compact ? "size-5 text-xs" : "size-9 text-base"}`}
+      >
+        {initials}
+      </span>
+      {compact ? (
+        <span>Perfil</span>
+      ) : (
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-medium text-ivory">
+            {user.username}
+          </span>
+          <span className="block text-xs">Tu perfil</span>
+        </span>
+      )}
+    </button>
+  );
+}
 
 /* Plan: una ventana en arco a la escena de la portada, en miniatura. */
 function PlanCard() {
@@ -67,9 +109,13 @@ function PlanCard() {
 export function DashboardSidebar({
   open,
   onClose,
+  user,
+  onOpenProfile,
 }: {
   open: boolean;
   onClose: () => void;
+  user: UserProfile;
+  onOpenProfile: () => void;
 }) {
   return (
     <>
@@ -122,17 +168,24 @@ export function DashboardSidebar({
         </nav>
         <div className="mt-auto flex flex-col gap-1 text-[13px]">
           <PlanCard />
+          <ProfileButton user={user} onOpenProfile={onOpenProfile} />
         </div>
       </aside>
     </>
   );
 }
 
-export function MobileNavigation() {
+export function MobileNavigation({
+  user,
+  onOpenProfile,
+}: {
+  user: UserProfile;
+  onOpenProfile: () => void;
+}) {
   return (
     <nav
       aria-label="Navegación móvil"
-      className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 bg-night-soft px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 bg-night-soft px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 lg:hidden"
     >
       {mobileItems.map(({ label, icon: Icon, active }) => (
         <a
@@ -151,6 +204,7 @@ export function MobileNavigation() {
           {label}
         </a>
       ))}
+      <ProfileButton user={user} onOpenProfile={onOpenProfile} compact />
     </nav>
   );
 }

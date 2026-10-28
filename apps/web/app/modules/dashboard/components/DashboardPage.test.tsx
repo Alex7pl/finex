@@ -42,10 +42,12 @@ test("DashboardPage renders API data, transfer routing and real profile without 
     "Mercadona",
     "•••• 4821",
     "7 meses al ritmo actual",
+    "Filtrar por cuenta",
+    "Buscar movimientos",
+    "Mes del resumen",
   ])
     assert.ok(!html.includes(removed), removed);
   assert.ok(html.includes("transactionId="));
-  assert.ok(html.includes("Filtrar por cuenta"));
 });
 test("empty API results display empty states and zero amounts instead of sample data", () => {
   const html = render({
