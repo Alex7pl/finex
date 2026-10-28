@@ -4,8 +4,11 @@ Monorepo de la aplicación financiera FineX.
 
 ```bash
 pnpm install
+docker compose up -d postgres
 pnpm dev
 ```
+
+El PostgreSQL de Docker está disponible en `127.0.0.1:5433`, con usuario `app`, contraseña `app` y base `finex_db`. Configura `apps/api/.env` siguiendo `apps/api/.env.example`. El puerto 5433 evita conflictos con otros servicios locales que usan 5432. Tras cambiar `.env`, reinicia el proceso de desarrollo.
 
 Para añadir datos mock al usuario existente `test@gmail.com` en PostgreSQL local:
 
