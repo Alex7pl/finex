@@ -5,10 +5,10 @@ export class UpdatedAccount extends Schema.Class<UpdatedAccount>(
 )({
   id: Schema.String,
   name: Schema.String,
-  emoji: Schema.String,
-  color: Schema.String,
-  annual_interest_rate: Schema.Number,
-  interest_payment_rate: Schema.Number,
+  emoji: Schema.NullOr(Schema.String),
+  color: Schema.NullOr(Schema.String),
+  annual_interest_rate: Schema.NullOr(Schema.String),
+  interest_payment_rate: Schema.NullOr(Schema.String),
 
   balance: Schema.String,
 }) {}
@@ -28,5 +28,7 @@ export class HistoryBalance extends Schema.Class<HistoryBalance>(
   total_balance: Schema.String,
   initial_balance: Schema.String,
   last_period_balance: Schema.String,
+  income: Schema.String,
+  expenses: Schema.String,
   history: Schema.Array(BalancePointHistory),
 }) {}

@@ -3,7 +3,7 @@ import { Context, Effect } from "effect";
 import {
   HistoryBalance,
   UpdatedAccount,
-} from "~/packages/shared/dist/accounts/accounts.schema.js";
+} from "@finex/shared/accounts/accounts.schema.js";
 
 export class AccountRepository extends Context.Tag("AccountRepository")<
   AccountRepository,
@@ -12,6 +12,7 @@ export class AccountRepository extends Context.Tag("AccountRepository")<
       userId: string,
     ) => Effect.Effect<UpdatedAccount[], DatabaseError>;
     getAccountById: (
+      userId: string,
       accountId: string,
     ) => Effect.Effect<UpdatedAccount | null, DatabaseError>;
     getHistoryBalance: (
