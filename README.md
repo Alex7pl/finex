@@ -19,10 +19,11 @@ pnpm --filter @finex/api db:seed:demo
 Requiere las migraciones aplicadas y usa `apps/api/.env`. Conserva la contraseña
 y los datos existentes; las filas mock tienen IDs estables para evitar duplicados
 al repetir la carga. Incluye 12 meses de movimientos, cuentas, categorías,
-presupuestos, objetivos de ahorro y deudas, identificados con `Mock ·`.
+presupuestos, objetivos de ahorro, deudas e ingresos, identificados con `Mock ·`.
 
 Documentación principal:
 
 - [Arquitectura frontend y BFF](docs/frontend-architecture.md)
 - [Guía de desarrollo](docs/dev-guide.md)
+- [Deudas, ingresos y devengo](docs/ledger-api.md)
 - [Composición de componentes](apps/web/COMPONENT_COMPOSITION.md)

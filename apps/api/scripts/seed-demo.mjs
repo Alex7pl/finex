@@ -65,14 +65,38 @@ try {
       await tx`insert into categories ${tx({id:categoryId(key), user_id:userId,
         name:`Mock · ${name}`, kind, emoji, color})} on conflict (id) do nothing`;
     }
+    const sources = new Map();
+    for (const [key, name, amount, account, category, active] of [
+      ['salary', 'Nómina mensual', 285000, 'daily', 'salary', true],
+      ['rent', 'Alquiler', 85000, 'daily', 'home', true],
+      ['internet', 'Internet y móvil', 4990, 'daily', 'utilities', true],
+      ['transport', 'Abono transporte', 5460, 'daily', 'transport', true],
+      ['electricity', 'Electricidad', 7245, 'daily', 'utilities', true],
+      ['subscription', 'Suscripción streaming', 1599, 'card', 'leisure', true],
+      ['inactive', 'Antiguo gimnasio', 2990, 'daily', 'health', false],
+      ['pending-bill', 'Agua', 3850, 'daily', 'utilities', true],
+      ['loan-payment', 'Préstamo personal', 14000, 'daily', null, true],
+    ]) {
+      const kind = key === 'salary' ? 'income' : 'debt';
+      const sourceId = await seed(kind === 'income' ? 'incomes' : 'debts', key === 'loan-payment' ? 'loan' : key, {
+        name:`Mock · ${name}`, account_id:accountId(account), category_id:categoryId(category), is_active:active,
+        ...(kind === 'income' ? {amount:money(amount)} : {quota:money(amount), capital:key === 'loan-payment' ? '3200.00' : null,
+          interests:key === 'loan-payment' ? '160.00' : null, time_limit:null}),
+      });
+      sources.set(key, {kind, id:sourceId});
+    }
     const transactionIds = [];
-    const movement = async (key, date, type, description, cents, legs, category = null, from = null, active = null) => {
+    const movement = async (key, date, type, description, cents, legs, category = null, from = null) => {
       if (legs.reduce((total, leg) => total + leg[1], 0) !== cents) throw new Error(`Unbalanced split: ${key}`);
+      const source = sources.get(key.split(':').at(-1));
       const transactionId = await seed('transactions', key, {
         type, description:`Mock · ${description}`, amount:money(cents), category_id:categoryId(category),
-        from:from ? accountId(from) : null, cycle:type.startsWith('Fixed_') ? date : null,
-        is_active:active, created_at:date, updated_at:date,
+        from:from ? accountId(from) : null, debt_id:source?.kind === 'debt' ? source.id : null,
+        income_id:source?.kind === 'income' ? source.id : null, created_at:date, updated_at:date,
       });
+      // Attach existing demo history as well when upgrading an already seeded dev database.
+      if (source) await tx`update transactions set debt_id=${source.kind === 'debt' ? source.id : null},
+        income_id=${source.kind === 'income' ? source.id : null} where id=${transactionId} and user_id=${userId}`;
       transactionIds.push(transactionId);
       for (const [index, [account, amount, state = 'Completed']] of legs.entries()) {
         await tx`insert into transactions_splits ${tx({id:id(`split:${key}:${index}`), transaction_id:transactionId,
@@ -83,46 +107,47 @@ try {
       const period = new Date(Date.UTC(year, month - 1 + offset, 1));
       const prefix = period.toISOString().slice(0, 7);
       const date = (d) => `${prefix}-${String(d).padStart(2, '0')}T08:00:00.000Z`;
-      const add = (key, d, type, description, amount, account, category, state = 'Completed', active = null) => {
+      const add = (key, d, type, description, amount, account, category, state = 'Completed') => {
         if (offset === 0 && d > day && state === 'Completed') return;
         return movement(`${prefix}:${key}`, date(d), type, description, amount,
-          [[account, amount, state]], category, null, active);
+          [[account, amount, state]], category, null);
       };
       if (offset === -11) {
-        await add('opening-daily', 1, 'Variable_income', 'Saldo inicial principal', 240000, 'daily', null);
-        await add('opening-savings', 1, 'Variable_income', 'Ahorros iniciales', 750000, 'savings', null);
-        await add('opening-cash', 1, 'Variable_income', 'Efectivo inicial', 15000, 'cash', null);
+        await add('opening-daily', 1, 'income', 'Saldo inicial principal', 240000, 'daily', null);
+        await add('opening-savings', 1, 'income', 'Ahorros iniciales', 750000, 'savings', null);
+        await add('opening-cash', 1, 'income', 'Efectivo inicial', 15000, 'cash', null);
       }
-      await add('salary', 1, 'Fixed_income', 'Nómina mensual', 285000, 'daily', 'salary', 'Completed', true);
-      await add('rent', 2, 'Fixed_expense', 'Alquiler', 85000, 'daily', 'home', 'Completed', true);
-      await add('internet', 3, 'Fixed_expense', 'Internet y móvil', 4990, 'daily', 'utilities', 'Completed', true);
-      await add('transport', 4, 'Fixed_expense', 'Abono transporte', 5460, 'daily', 'transport', 'Completed', true);
+      await add('salary', 1, 'income', 'Nómina mensual', 285000, 'daily', 'salary', 'Completed');
+      await add('loan-payment', 15, 'expense', 'Cuota préstamo', 14000, 'daily', null);
+      await add('rent', 2, 'expense', 'Alquiler', 85000, 'daily', 'home', 'Completed');
+      await add('internet', 3, 'expense', 'Internet y móvil', 4990, 'daily', 'utilities', 'Completed');
+      await add('transport', 4, 'expense', 'Abono transporte', 5460, 'daily', 'transport', 'Completed');
       for (const d of [5, 10, 15, 20, 25]) {
-        await add(`groceries-${d}`, d, 'Variable_expense', `Compra supermercado ${d}`, 5500 + d * 97 + (offset + 11) * 31, 'daily', 'groceries');
+        await add(`groceries-${d}`, d, 'expense', `Compra supermercado ${d}`, 5500 + d * 97 + (offset + 11) * 31, 'daily', 'groceries');
       }
-      await add('restaurant', 7, 'Variable_expense', 'Cena con amigos', 6850, 'card', 'dining');
-      await add('electricity', 8, 'Fixed_expense', 'Factura de electricidad', 7245 + (offset + 11) * 90, 'daily', 'utilities', 'Completed', true);
-      await add('cinema', 9, 'Variable_expense', 'Cine y palomitas', 2400, 'card', 'leisure');
-      await add('freelance', 12, 'Variable_income', 'Proyecto de diseño', 45000 + (offset + 11) * 2500, 'daily', 'freelance');
-      await add('pharmacy', 13, 'Variable_expense', 'Farmacia', 1875, 'cash', 'health');
-      await add('subscription', 14, 'Fixed_expense', 'Suscripción streaming', 1599, 'card', 'leisure', 'Completed', true);
-      await add('restaurant-2', 16, 'Variable_expense', 'Comida de fin de semana', 9450, 'card', 'dining');
-      await add('interest', 18, 'Variable_income', 'Intereses cuenta remunerada', 1250 + (offset + 11) * 60, 'savings', 'interest');
-      await add('uncategorized', 19, 'Variable_expense', 'Compra por categorizar', 3299, 'daily', null);
-      await add('inactive', 21, 'Fixed_expense', 'Antiguo gimnasio (inactivo)', 2990, 'daily', 'health', 'Completed', false);
-      await movement(`${prefix}:transfer-savings`, date(6), 'Transfer', 'Aportación mensual a ahorros', 35000,
+      await add('restaurant', 7, 'expense', 'Cena con amigos', 6850, 'card', 'dining');
+      await add('electricity', 8, 'expense', 'Factura de electricidad', 7245 + (offset + 11) * 90, 'daily', 'utilities', 'Completed');
+      await add('cinema', 9, 'expense', 'Cine y palomitas', 2400, 'card', 'leisure');
+      await add('freelance', 12, 'income', 'Proyecto de diseño', 45000 + (offset + 11) * 2500, 'daily', 'freelance');
+      await add('pharmacy', 13, 'expense', 'Farmacia', 1875, 'cash', 'health');
+      await add('subscription', 14, 'expense', 'Suscripción streaming', 1599, 'card', 'leisure', 'Completed');
+      await add('restaurant-2', 16, 'expense', 'Comida de fin de semana', 9450, 'card', 'dining');
+      await add('interest', 18, 'income', 'Intereses cuenta remunerada', 1250 + (offset + 11) * 60, 'savings', 'interest');
+      await add('uncategorized', 19, 'expense', 'Compra por categorizar', 3299, 'daily', null);
+      await add('inactive', 21, 'expense', 'Antiguo gimnasio (inactivo)', 2990, 'daily', 'health', 'Completed');
+      await movement(`${prefix}:transfer-savings`, date(6), 'transfer', 'Aportación mensual a ahorros', 35000,
         [['savings', 35000]], null, 'daily');
-      await movement(`${prefix}:cash-withdrawal`, date(11), 'Transfer', 'Retirada de efectivo', 10000,
+      await movement(`${prefix}:cash-withdrawal`, date(11), 'transfer', 'Retirada de efectivo', 10000,
         [['cash', 10000]], null, 'daily');
       if (offset === 0) {
-        await movement(`${prefix}:split-expense`, date(Math.min(day, 20)), 'Variable_expense', 'Compra compartida entre cuentas', 12000,
+        await movement(`${prefix}:split-expense`, date(Math.min(day, 20)), 'expense', 'Compra compartida entre cuentas', 12000,
           [['daily', 8000], ['cash', 4000]], 'groceries');
-        await movement(`${prefix}:mixed`, date(Math.min(day, 21)), 'Variable_income', 'Factura freelance cobrada parcialmente', 90000,
+        await movement(`${prefix}:mixed`, date(Math.min(day, 21)), 'income', 'Factura freelance cobrada parcialmente', 90000,
           [['daily', 60000], ['daily', 30000, 'Pending']], 'freelance');
-        await add('pending-dinner', Math.min(day, 22), 'Variable_expense', 'Restaurante pendiente de cargo', 5800, 'card', 'dining', 'Pending');
-        await add('pending-bill', 27, 'Fixed_expense', 'Agua pendiente', 3850, 'daily', 'utilities', 'Pending', true);
-        await add('pending-income', 28, 'Variable_income', 'Proyecto pendiente de cobro', 32000, 'daily', 'freelance', 'Pending');
-        await movement(`${prefix}:pending-transfer`, date(Math.min(day, 22)), 'Transfer', 'Traspaso pendiente', 15000,
+        await add('pending-dinner', Math.min(day, 22), 'expense', 'Restaurante pendiente de cargo', 5800, 'card', 'dining', 'Pending');
+        await add('pending-bill', 27, 'expense', 'Agua pendiente', 3850, 'daily', 'utilities', 'Pending');
+        await add('pending-income', 28, 'income', 'Proyecto pendiente de cobro', 32000, 'daily', 'freelance', 'Pending');
+        await movement(`${prefix}:pending-transfer`, date(Math.min(day, 22)), 'transfer', 'Traspaso pendiente', 15000,
           [['savings', 15000, 'Pending']], null, 'daily');
       }
     }
@@ -130,7 +155,7 @@ try {
       ['groceries', 'Supermercado', 35000, 'groceries', null],
       ['dining', 'Restaurantes (superado)', 12000, 'dining', null],
       ['leisure', 'Ocio', 10000, 'leisure', null],
-      ['home', 'Vivienda', 100000, 'home', 'Fixed_expense'],
+      ['home', 'Vivienda', 100000, 'home', 'expense'],
       ['travel', 'Viajes (sin gasto)', 25000, 'travel', null],
       ['all', 'Gasto mensual total', 180000, null, null],
     ]) await seed('budgets', key, {name:`Mock · ${name}`, monthly_limit:money(limit), category_id:categoryId(category), about_type:type});
@@ -143,7 +168,7 @@ try {
     ]) await seed('savings', key, {name:`Mock · ${name}`, current_amount:money(current), target_amount:money(target), account_id:accountId(account)});
     for (const [key, name, capital, interests, quota] of [
       ['loan', 'Préstamo personal', '3200.00', '160.00', '140.00'],
-      ['installment', 'Compra a plazos', null, null, '45.00'],
+      ['installment', 'Compra a plazos', '540.00', null, '45.00'],
     ]) await seed('debts', key, {name:`Mock · ${name}`, account_id:accountId('daily'), capital, interests, quota,
       time_limit:`${year + 2}-06-30T10:00:00.000Z`});
     const invalid = await tx`
@@ -153,11 +178,11 @@ try {
       having sum(abs(s.amount)) <> abs(t.amount) or count(s.id)=0
         or bool_or(a.user_id <> t.user_id)
         or bool_or(c.user_id <> t.user_id)
-        or bool_or((c.kind='income') <> (t.type in ('Fixed_income','Variable_income')))
+        or bool_or((c.kind='income') <> (t.type in ('income')))
     `;
     if (invalid.length) throw new Error('Seed validation failed; rolling back.');
     const counts = {};
-    for (const table of ['accounts', 'categories', 'transactions', 'budgets', 'savings', 'debts']) {
+    for (const table of ['accounts', 'categories', 'transactions', 'budgets', 'savings', 'debts', 'incomes']) {
       const [row] = await tx`select count(*)::integer as count from ${tx(table)} where user_id=${userId}`;
       counts[table] = row.count;
     }
