@@ -20,14 +20,19 @@ test("Postgres transaction listing, grouping, filters and ownership", {
   try {
     await client.unsafe(`
       CREATE TEMP TABLE accounts (id uuid PRIMARY KEY, user_id uuid, name text, emoji text, color text);
+      CREATE TEMP TABLE categories (id uuid PRIMARY KEY, user_id uuid, name text, kind text, emoji text, color text,
+        created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now());
       CREATE TEMP TABLE transactions (id uuid PRIMARY KEY, user_id uuid, type text, description text,
-        amount numeric(12,2), "from" uuid, cycle timestamptz, is_active boolean,
+        amount numeric(12,2), "from" uuid, category_id uuid, cycle timestamptz, is_active boolean,
         created_at timestamptz, updated_at timestamptz DEFAULT now());
       CREATE TEMP TABLE transactions_splits (id uuid PRIMARY KEY, transaction_id uuid,
         account_id uuid, amount numeric(12,2), state text);
     `);
     await client`INSERT INTO accounts VALUES (${a}, ${user}, 'Main', null, null),
       (${b}, ${user}, 'Savings', '🏦', '#fff'), (${foreign}, ${other}, 'Private', null, null)`;
+    await client`INSERT INTO categories (id, user_id, name, kind) VALUES
+      (${id(40)}, ${user}, 'Food', 'expense'), (${id(41)}, ${user}, 'Salary', 'income'),
+      (${id(42)}, ${other}, 'Private', 'expense')`;
     const insert = async (n: number, owner: string, type: string, from: string | null, description: string, amount: string) => {
       await client`INSERT INTO transactions (id, user_id, type, "from", description, amount, created_at)
         VALUES (${id(n)}, ${owner}, ${type}, ${from}, ${description}, ${amount}, '2026-10-19T12:00:00Z')`;
@@ -92,6 +97,28 @@ test("Postgres transaction listing, grouping, filters and ownership", {
       assert.equal((await list({ kind: "expense", state: "Completed" })).total, 1);
       assert.equal((await list({ internalTransfer: "false" })).total, 2);
       assert.equal((await list({ isActive: "false" })).total, 0);
+    });
+    await t.test("category assignment, filters, kind checks and ownership", async () => {
+      const assign = (transactionId: string, categoryId: string | null) => run(Effect.flatMap(TransactionRepository,
+        (repo) => repo.setCategory(user, transactionId, categoryId)));
+      assert.equal((await list({ uncategorized: "true" })).total, 3);
+      assert.equal((await assign(id(21), id(40)))?.category?.name, "Food");
+      assert.equal((await list({ categoryId: id(40) })).total, 1);
+      assert.equal((await list({ categoryId: `${id(40)},${id(41)}` })).total, 1);
+      assert.equal((await list({ uncategorized: "true" })).total, 2);
+      assert.equal((await list({ uncategorized: "false" })).total, 1);
+      assert.equal(await assign(id(20), id(40)), null);
+      assert.equal(await assign(id(21), id(41)), null);
+      assert.equal(await assign(id(21), id(42)), null);
+      assert.equal(await assign(id(22), id(40)), null);
+      assert.equal((await detail(id(21)))?.category_id, id(40));
+      assert.equal((await assign(id(21), null))?.category, null);
+      // Even corrupted cross-user references must not reveal category metadata.
+      await client`UPDATE transactions SET category_id = ${id(42)} WHERE id = ${id(21)}`;
+      assert.equal((await detail(id(21)))?.category_id, null);
+      assert.equal((await detail(id(21)))?.category, null);
+      assert.equal((await list({ categoryId: id(42) })).total, 0);
+      await client`UPDATE transactions SET category_id = null WHERE id = ${id(21)}`;
     });
     await t.test("stable sorting, pagination and empty pages retain totals", async () => {
       const first = await list({ limit: "1", sortBy: "amount", sortOrder: "asc" });

@@ -37,6 +37,11 @@ const accountJson = (alias: SQL) => sql`jsonb_build_object(
   'id', ${alias}.id, 'name', ${alias}.name, 'emoji', ${alias}.emoji, 'color', ${alias}.color)`;
 const dto = sql`jsonb_build_object(
   'id', t.id, 'type', t.type, 'kind', t.kind,
+  'category_id', (SELECT c.id FROM categories c WHERE c.id = t.category_id AND c.user_id = t.user_id),
+  'category', (SELECT jsonb_build_object('id', c.id, 'name', c.name, 'kind', c.kind, 'emoji', c.emoji, 'color', c.color,
+    'created_at', to_char(c.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+    'updated_at', to_char(c.updated_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'))
+    FROM categories c WHERE c.id = t.category_id AND c.user_id = t.user_id),
   'description', t.description, 'amount', t.amount::text,
   'created_at', to_char(t.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
   'updated_at', to_char(t.updated_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
@@ -61,6 +66,12 @@ function conditions(filters: TransactionFilters) {
       SELECT 1 FROM transactions_splits s WHERE s.transaction_id = t.id AND s.account_id IN (${ids})
     ))`);
   }
+  if (filters.categoryIds.length) parts.push(sql`EXISTS (SELECT 1 FROM categories c
+    WHERE c.id = t.category_id AND c.user_id = t.user_id
+      AND c.id IN (${sql.join(filters.categoryIds.map((id) => sql`${id}::uuid`), sql`, `)}))`);
+  if (filters.uncategorized !== undefined) parts.push(filters.uncategorized
+    ? sql`NOT EXISTS (SELECT 1 FROM categories c WHERE c.id = t.category_id AND c.user_id = t.user_id)`
+    : sql`EXISTS (SELECT 1 FROM categories c WHERE c.id = t.category_id AND c.user_id = t.user_id)`);
   if (filters.types.length) parts.push(sql`t.type IN (${sql.join(filters.types.map((type) => sql`${type}`), sql`, `)})`);
   if (filters.kind) parts.push(sql`t.kind = ${filters.kind}`);
   if (filters.state) parts.push(sql`t.state = ${filters.state}`);
@@ -108,6 +119,27 @@ export const TransactionRepositoryPostgresLayer = Layer.effect(
             has_more: filters.page * filters.limit < total } satisfies TransactionList;
         },
         catch: (cause) => new DatabaseError({ message: "Failed to list transactions", cause }),
+      }),
+      setCategory: (userId: string, id: string, categoryId: string | null) => Effect.tryPromise({
+        try: async () => db.transaction(async (tx) => {
+          // Recheck ownership and kind in the mutation itself to avoid races with validation.
+          const rows = await tx.execute<{ id: string }>(sql`
+            WITH visible AS (${visibleTransactions(userId)})
+            UPDATE transactions t SET category_id = ${categoryId}::uuid, updated_at = now()
+            WHERE t.id = ${id}::uuid AND t.id IN (SELECT id FROM visible)
+              AND (${categoryId}::uuid IS NULL OR EXISTS (
+                SELECT 1 FROM categories c WHERE c.id = ${categoryId}::uuid AND c.user_id = ${userId}
+                  AND ((c.kind = 'income' AND t.type IN ('Fixed_income', 'Variable_income'))
+                    OR (c.kind = 'expense' AND t.type IN ('Fixed_expense', 'Variable_expense')))
+              )) RETURNING t.id
+          `);
+          if (!rows.length) return null;
+          const result = await tx.execute<{ dto: TransactionDto }>(sql`
+            WITH visible AS (${visibleTransactions(userId)}) SELECT ${dto} AS dto FROM visible t WHERE t.id = ${id}::uuid
+          `);
+          return result[0]?.dto ?? null;
+        }),
+        catch: (cause) => new DatabaseError({ message: "Failed to set transaction category", cause }),
       }),
       findById: (userId: string, id: string) => Effect.tryPromise({
         try: async () => {

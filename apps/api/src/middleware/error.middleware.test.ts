@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import type { AddressInfo } from "node:net";
 import test from "node:test";
+import { CategoryNotFound, CategoryInUse } from "@finex/shared/categories/categories.errors.js";
 import { UserNotFound } from "@finex/shared/auth/auth.errors.js";
 import { UnauthorizedError, ValidationError } from "@finex/shared/errors.js";
 import express from "express";
@@ -25,6 +26,8 @@ async function withTestServer(run: (baseUrl: string) => Promise<void>) {
     new ValidationError({ message: "invalid", issues: [] }),
     new UserNotFound({ message: "private user detail" }),
     new UnauthorizedError(),
+    new CategoryNotFound({ id: "private-category-id" }),
+    new CategoryInUse({ id: "private-category-id" }),
   ];
   for (const error of expectedErrors) {
     app.get(
@@ -65,6 +68,8 @@ test("serves stable expected and unexpected error envelopes over HTTP", async ()
         ["/ValidationError", 400, "ValidationError"],
         ["/UserNotFound", 404, "UserNotFound"],
         ["/UnauthorizedError", 401, "UnauthorizedError"],
+        ["/CategoryNotFound", 404, "CategoryNotFound"],
+        ["/CategoryInUse", 409, "CategoryInUse"],
       ] as const) {
         const response = await fetch(`${baseUrl}${path}`);
         assert.equal(response.status, status);

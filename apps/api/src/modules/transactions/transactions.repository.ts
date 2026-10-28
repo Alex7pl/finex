@@ -6,6 +6,7 @@ export class TransactionRepository extends Context.Tag("TransactionRepository")<
   TransactionRepository,
   {
     list: (userId: string, filters: TransactionFilters) => Effect.Effect<TransactionList, DatabaseError>;
+    setCategory: (userId: string, id: string, categoryId: string | null) => Effect.Effect<TransactionDto | null, DatabaseError>;
     findById: (userId: string, id: string) => Effect.Effect<TransactionDto | null, DatabaseError>;
   }
 >() {}

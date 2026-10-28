@@ -11,6 +11,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { idColumn, moneyColumn, timestampColumns } from "../helpers.js";
 import { accounts } from "./accounts.js";
+import { categories } from "./categories.js";
 import { users } from "./users.js";
 
 export const transactionsTypeEnum = pgEnum("transactions_type", [
@@ -34,6 +35,8 @@ export const transactions = pgTable(
       .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" })
       .notNull(),
 
+    category_id: uuid("category_id").references(() => categories.id, { onDelete: "set null", onUpdate: "cascade" }),
+
     type: transactionsTypeEnum("type").notNull(),
 
     description: text("description"),
@@ -53,7 +56,9 @@ export const transactions = pgTable(
   },
   (table) => [
     index("transactions_user_id_idx").on(table.user_id),
+    index("transactions_category_id_idx").on(table.category_id),
     index("transactions_from_idx").on(table.from),
+    check("transactions_transfer_no_category", sql`${table.type} <> 'Transfer' OR ${table.category_id} IS NULL`),
     check("transactions_amount_non_zero", sql`${table.amount} <> 0`),
   ],
 );

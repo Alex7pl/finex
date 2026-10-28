@@ -1,3 +1,7 @@
+import {
+  CategoryNotFound,
+  CategoryInUse,
+} from "@finex/shared/categories/categories.errors.js";
 import { TransactionNotFound } from "@finex/shared/transactions/transactions.errors.js";
 import {
   UserAlreadyExists,
@@ -20,6 +24,8 @@ type AppError =
   | ValidationError
   | UserNotFound
   | UserAlreadyExists
+  | CategoryNotFound
+  | CategoryInUse
   | TransactionNotFound
   | AccountNotFound
   | DatabaseError;
@@ -31,6 +37,8 @@ const STATUS: Record<AppError["_tag"], number> = {
   UserAlreadyExists: 409,
   AccountNotFound: 404,
   TransactionNotFound: 404,
+  CategoryNotFound: 404,
+  CategoryInUse: 409,
   DatabaseError: 500,
 };
 

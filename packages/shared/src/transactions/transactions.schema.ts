@@ -1,3 +1,4 @@
+import { CategoryDto } from "../categories/categories.schema.js";
 import { Schema } from "effect";
 
 export const TransactionType = Schema.Literal(
@@ -24,6 +25,8 @@ export const TransactionDto = Schema.Struct({
   type: TransactionType,
   kind: TransactionKind,
   description: Schema.NullOr(Schema.String),
+  category_id: Schema.NullOr(Schema.UUID),
+  category: Schema.NullOr(CategoryDto),
   amount: Schema.String,
   created_at: Schema.String,
   updated_at: Schema.String,
@@ -47,6 +50,8 @@ export type TransactionList = typeof TransactionList.Type;
 
 export type TransactionFilters = {
   accountIds: readonly string[];
+  categoryIds: readonly string[];
+  uncategorized?: boolean;
   types: readonly (typeof TransactionType.Type)[];
   kind?: typeof TransactionKind.Type;
   state?: typeof TransactionState.Type;
@@ -62,3 +67,5 @@ export type TransactionFilters = {
   sortBy: "date" | "amount" | "description";
   sortOrder: "asc" | "desc";
 };
+
+export const SetTransactionCategoryInput = Schema.Struct({ category_id: Schema.NullOr(Schema.UUID) });

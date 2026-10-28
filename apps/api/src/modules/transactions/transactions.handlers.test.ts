@@ -22,6 +22,7 @@ async function request(path: string, authenticated = true, failed = false) {
       return failed ? Effect.fail(new DatabaseError({ message: "private database error" })) :
         Effect.succeed({ items: [], total: 0, page: filters.page, limit: filters.limit, has_more: false });
     },
+    setCategory: () => Effect.succeed(null),
     findById: () => { calls++; return Effect.succeed(null); },
   };
   const run = ((data: { user: typeof user | null }, program: Effect.Effect<unknown, unknown, CurrentUser | TransactionRepository>) =>

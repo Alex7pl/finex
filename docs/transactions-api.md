@@ -1,6 +1,6 @@
 # API de transacciones
 
-Los dos endpoints requieren la sesión existente (cookie de acceso). Cada consulta
+Todos los endpoints requieren la sesión existente (cookie de acceso). Cada consulta
 queda limitada al usuario autenticado. Una transacción ajena o inexistente devuelve
 el mismo `404 TransactionNotFound`. Una asociación incoherente con cuentas de otro
 usuario se oculta por completo.
@@ -21,11 +21,13 @@ usuario se oculta por completo.
 
 `total` cuenta movimientos completos después de aplicar los filtros y antes de
 paginar. Una página sin resultados mantiene ese total. Todos los filtros se
-combinan con AND; dentro de `accountId` o `type` se usa OR.
+combinan con AND; dentro de `accountId`, `categoryId` o `type` se usa OR.
 
 | Parámetro | Valores / significado |
 | --- | --- |
 | `accountId` | UUID; admite varios separados por comas o parámetros repetidos. Busca tanto en origen como en destinos. |
+| `categoryId` | UUID de categoría; admite varios separados por comas o parámetros repetidos. |
+| `uncategorized` | `true` para movimientos sin categoría; `false` para movimientos con categoría. No admite `true` junto con `categoryId`. |
 | `dateFrom` | Fecha `YYYY-MM-DD` o instante ISO con zona horaria, límite inclusivo. |
 | `dateTo` | Fecha completa inclusiva (hasta el comienzo del día siguiente) o instante ISO inclusivo. |
 | `search` | Texto contenido en la descripción, sin distinguir mayúsculas; `%`, `_` y `\` se buscan literalmente. Máximo 200 caracteres. |
@@ -68,6 +70,8 @@ El detalle devuelve el mismo DTO que cada elemento del listado:
   "type": "Transfer",
   "kind": "transfer",
   "description": "Ahorro mensual",
+  "category_id": null,
+  "category": null,
   "amount": "100.10",
   "created_at": "2026-10-19T12:00:00.000000Z",
   "updated_at": "2026-10-19T12:00:00.000000Z",
@@ -114,6 +118,28 @@ No existe un estado independiente para el débito de origen en el modelo actual.
 Los errores usan el contrato común `{ "error": { "code": "…", "requestId": "…" } }`:
 `401 UnauthorizedError`, `400 ValidationError`, `404 TransactionNotFound` y
 `500 DatabaseError`.
+
+## Categorizar movimientos
+
+`PATCH /transactions/:transactionId/category`
+
+Requiere sesión y `Origin` o `Referer` del `WEB_ORIGIN` configurado. El cuerpo
+es `{ "category_id": "<uuid>" }` para asignar o `{ "category_id": null }` para
+quitar la categoría. Devuelve el DTO completo actualizado. Se rechazan campos
+extra, UUID inválidos y cuerpos sin `category_id`.
+
+La categoría debe pertenecer al usuario y coincidir con el tipo de movimiento:
+`income` para `Fixed_income` / `Variable_income` y `expense` para `Fixed_expense`
+/ `Variable_expense`. Las transferencias no admiten categorías. Un tipo
+incompatible devuelve `400 ValidationError`; una categoría inexistente o ajena
+produce `404 CategoryNotFound`. Los movimientos propios existentes siguen
+limitados a sus cuentas propias.
+
+Tanto listado como detalle incluyen `category_id` y `category`, el DTO de
+[categorías](categories-api.md), o null cuando no hay categoría. La agrupación
+de transferencias conserva el mismo comportamiento. El borrado de una categoría
+deja sus movimientos sin categoría; los filtros `uncategorized` incluyen también
+las transferencias, que por definición no tienen categoría.
 
 ## Verificación
 

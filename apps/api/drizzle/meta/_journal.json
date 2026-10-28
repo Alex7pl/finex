@@ -29,6 +29,13 @@
       "when": 1792078244557,
       "tag": "0003_jazzy_karma",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792424824262,
+      "tag": "0004_mature_wiccan",
+      "breakpoints": true
     }
   ]
 }

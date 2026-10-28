@@ -13,6 +13,8 @@ const boolean = z.enum(["true", "false"]).transform((value) => value === "true")
 const date = z.union([z.iso.date(), z.iso.datetime({ offset: true })]);
 const querySchema = z.strictObject({
   accountId: list(z.uuid()),
+  categoryId: list(z.uuid()),
+  uncategorized: boolean.optional(),
   type: list(z.enum(TransactionType.literals)),
   kind: z.enum(TransactionKind.literals).optional(),
   state: z.enum(TransactionState.literals).optional(),
@@ -28,6 +30,7 @@ const querySchema = z.strictObject({
   sortBy: z.enum(["date", "amount", "description"]).default("date"),
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
 }).superRefine((value, ctx) => {
+  if (value.uncategorized === true && value.categoryId.length) ctx.addIssue({ code: "custom", path: ["uncategorized"], message: "categoryId and uncategorized=true cannot be combined" });
   const end = value.dateTo ? Date.parse(value.dateTo) : undefined;
   const start = value.dateFrom ? Date.parse(value.dateFrom) : undefined;
   const invalidRange = start !== undefined && end !== undefined && (
@@ -47,8 +50,8 @@ export function parseTransactionFilters(raw: unknown) {
     message: "Invalid transaction filters",
     issues: parsed.error.issues.map((issue) => ({ path: issue.path.map(String), message: issue.message })),
   }));
-  const { accountId, type, ...rest } = parsed.data;
-  return Effect.succeed({ ...rest, accountIds: accountId, types: type } satisfies TransactionFilters);
+  const { accountId, categoryId, type, ...rest } = parsed.data;
+  return Effect.succeed({ ...rest, accountIds: accountId, categoryIds: categoryId, types: type } satisfies TransactionFilters);
 }
 
 export function parseTransactionId(raw: unknown) {
