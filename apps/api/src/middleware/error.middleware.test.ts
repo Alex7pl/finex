@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import type { AddressInfo } from "node:net";
 import test from "node:test";
 import { CategoryNotFound, CategoryInUse } from "@finex/shared/categories/categories.errors.js";
+import { BudgetNotFound } from "@finex/shared/budgets/budgets.errors.js";
+import { SavingsNotFound } from "@finex/shared/savings/savings.errors.js";
 import { UserNotFound } from "@finex/shared/auth/auth.errors.js";
 import { UnauthorizedError, ValidationError } from "@finex/shared/errors.js";
 import express from "express";
@@ -28,6 +30,8 @@ async function withTestServer(run: (baseUrl: string) => Promise<void>) {
     new UnauthorizedError(),
     new CategoryNotFound({ id: "private-category-id" }),
     new CategoryInUse({ id: "private-category-id" }),
+    new BudgetNotFound({ id: "private-budget-id" }),
+    new SavingsNotFound({ id: "private-goal-id" }),
   ];
   for (const error of expectedErrors) {
     app.get(
@@ -70,6 +74,8 @@ test("serves stable expected and unexpected error envelopes over HTTP", async ()
         ["/UnauthorizedError", 401, "UnauthorizedError"],
         ["/CategoryNotFound", 404, "CategoryNotFound"],
         ["/CategoryInUse", 409, "CategoryInUse"],
+        ["/BudgetNotFound", 404, "BudgetNotFound"],
+        ["/SavingsNotFound", 404, "SavingsNotFound"],
       ] as const) {
         const response = await fetch(`${baseUrl}${path}`);
         assert.equal(response.status, status);

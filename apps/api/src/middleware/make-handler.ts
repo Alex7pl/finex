@@ -2,6 +2,8 @@ import {
   CategoryNotFound,
   CategoryInUse,
 } from "@finex/shared/categories/categories.errors.js";
+import { BudgetNotFound } from "@finex/shared/budgets/budgets.errors.js";
+import { SavingsNotFound } from "@finex/shared/savings/savings.errors.js";
 import { TransactionNotFound } from "@finex/shared/transactions/transactions.errors.js";
 import {
   UserAlreadyExists,
@@ -26,6 +28,8 @@ type AppError =
   | UserAlreadyExists
   | CategoryNotFound
   | CategoryInUse
+  | BudgetNotFound
+  | SavingsNotFound
   | TransactionNotFound
   | AccountNotFound
   | DatabaseError;
@@ -39,6 +43,8 @@ const STATUS: Record<AppError["_tag"], number> = {
   TransactionNotFound: 404,
   CategoryNotFound: 404,
   CategoryInUse: 409,
+  BudgetNotFound: 404,
+  SavingsNotFound: 404,
   DatabaseError: 500,
 };
 
