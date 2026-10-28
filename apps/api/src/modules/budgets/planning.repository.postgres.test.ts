@@ -50,29 +50,29 @@ test(
       ) => {
         await client`INSERT INTO transactions VALUES (${id(n)}, ${owner}, ${type}, ${cat}, ${from}, ${date})`;
       };
-      await seed(30, "Variable_expense", category, "2026-10-19T12:00:00Z");
-      await seed(31, "Fixed_expense", category, "2026-10-19T12:00:00Z");
-      await seed(32, "Transfer", category, "2026-10-19T12:00:00Z");
-      await seed(33, "Variable_income", category, "2026-10-19T12:00:00Z");
-      await seed(34, "Variable_expense", category, "2026-10-31T23:00:00Z"); // November in Madrid
-      await seed(35, "Variable_expense", category, "2026-09-30T22:00:00Z"); // October in Madrid
+      await seed(30, "expense", category, "2026-10-19T12:00:00Z");
+      await seed(31, "expense", category, "2026-10-19T12:00:00Z");
+      await seed(32, "transfer", category, "2026-10-19T12:00:00Z");
+      await seed(33, "income", category, "2026-10-19T12:00:00Z");
+      await seed(34, "expense", category, "2026-10-31T23:00:00Z"); // November in Madrid
+      await seed(35, "expense", category, "2026-09-30T22:00:00Z"); // October in Madrid
       await seed(
         36,
-        "Variable_expense",
+        "expense",
         otherCategory,
         "2026-10-19T12:00:00Z",
         other,
       );
-      await seed(37, "Variable_expense", category, "2026-10-19T12:00:00Z"); // malformed cross-user split
+      await seed(37, "expense", category, "2026-10-19T12:00:00Z"); // malformed cross-user split
       await seed(
         38,
-        "Variable_expense",
+        "expense",
         category,
         "2026-10-19T12:00:00Z",
         user,
         foreign,
       );
-      await seed(39, "Variable_expense", null, "2026-10-19T12:00:00Z");
+      await seed(39, "expense", null, "2026-10-19T12:00:00Z");
       await client`INSERT INTO transactions_splits VALUES
    (${id(100)}, ${id(30)}, ${a}, 0.10, 'Completed'), (${id(101)}, ${id(30)}, ${b}, 0.20, 'Completed'),
    (${id(102)}, ${id(30)}, ${a}, 0.05, 'Pending'), (${id(103)}, ${id(31)}, ${a}, 1.00, 'Completed'),
@@ -157,7 +157,7 @@ test(
         },
       );
       await t.test(
-        "CRUD ownership and legacy fixed-expense scope",
+        "CRUD ownership and expense scope",
         async () => {
           assert.equal(
             await Effect.runPromise(
@@ -176,7 +176,7 @@ test(
             false,
           );
           await Effect.runPromise(
-            budgetRepo.update(user, scoped.id, { about_type: "Fixed_expense" }),
+            budgetRepo.update(user, scoped.id, { about_type: "expense" }),
           );
           assert.equal(
             (
@@ -184,7 +184,7 @@ test(
                 budgetRepo.list(user, "2026-10", undefined, scoped.id),
               )
             )[0]!.spent,
-            "1.00",
+            "1.31",
           );
           assert.equal(
             await Effect.runPromise(budgetRepo.delete(user, scoped.id)),

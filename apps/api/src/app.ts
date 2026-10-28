@@ -9,6 +9,7 @@ import { categoryRouter } from "./modules/categories/categories.handlers.js";
 import { savingsRouter } from "./modules/savings/savings.handlers.js";
 import { transactionRouter } from "./modules/transactions/transactions.handlers.js";
 import { usersRouter } from "./modules/users/users.router.js";
+import { createSourceRouter } from "./modules/ledger/ledger.handlers.js";
 import cors from "cors";
 import express from "express";
 
@@ -30,6 +31,8 @@ export function createApp() {
   app.use("/categories", categoryRouter);
   app.use("/budgets", budgetRouter);
   app.use("/savings", savingsRouter);
+  app.use("/debts", createSourceRouter("debt"));
+  app.use("/incomes", createSourceRouter("income"));
 
   app.use(errorMiddleware);
 

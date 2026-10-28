@@ -1,3 +1,4 @@
+import { SourceNotFound } from "@finex/shared/ledger/ledger.schema.js";
 import {
   CategoryNotFound,
   CategoryInUse,
@@ -32,6 +33,7 @@ type AppError =
   | SavingsNotFound
   | TransactionNotFound
   | AccountNotFound
+  | SourceNotFound
   | DatabaseError;
 
 const STATUS: Record<AppError["_tag"], number> = {
@@ -46,6 +48,7 @@ const STATUS: Record<AppError["_tag"], number> = {
   BudgetNotFound: 404,
   SavingsNotFound: 404,
   DatabaseError: 500,
+  SourceNotFound: 404,
 };
 
 function writeError(

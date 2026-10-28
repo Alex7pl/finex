@@ -77,7 +77,7 @@ export const dashboardFixture: DashboardData = {
     items: [
       {
         id: transactionId,
-        type: "Transfer",
+        type: "transfer",
         kind: "transfer",
         description: "Transferencia real",
         amount: "60.00",
@@ -85,8 +85,8 @@ export const dashboardFixture: DashboardData = {
         category: null,
         created_at: "2026-10-19T10:00:00Z",
         updated_at: "2026-10-19T10:00:00Z",
-        cycle: null,
-        is_active: null,
+        debt_id: null,
+        income_id: null,
         state: "Completed",
         is_internal_transfer: true,
         from_account: {

@@ -17,7 +17,7 @@ const input = z.strictObject({
   monthly_limit: positiveMoney,
   category_id: z.uuid().nullable().optional(),
   about_type: z
-    .enum(["Fixed_expense", "Variable_expense"])
+    .enum(["expense"])
     .nullable()
     .optional(),
 });

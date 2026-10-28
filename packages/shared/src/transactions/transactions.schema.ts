@@ -2,7 +2,7 @@ import { CategoryDto } from "../categories/categories.schema.js";
 import { Schema } from "effect";
 
 export const TransactionType = Schema.Literal(
-  "Fixed_income", "Variable_income", "Fixed_expense", "Variable_expense", "Transfer",
+  "income", "expense", "transfer",
 );
 export const TransactionKind = Schema.Literal("income", "expense", "transfer");
 export const TransactionState = Schema.Literal("Completed", "Pending", "Mixed");
@@ -30,8 +30,8 @@ export const TransactionDto = Schema.Struct({
   amount: Schema.String,
   created_at: Schema.String,
   updated_at: Schema.String,
-  cycle: Schema.NullOr(Schema.String),
-  is_active: Schema.NullOr(Schema.Boolean),
+  debt_id: Schema.NullOr(Schema.UUID),
+  income_id: Schema.NullOr(Schema.UUID),
   state: TransactionState,
   is_internal_transfer: Schema.Boolean,
   from_account: Schema.NullOr(TransactionAccount),
@@ -60,7 +60,8 @@ export type TransactionFilters = {
   dateTo?: string;
   minAmount?: string;
   maxAmount?: string;
-  isActive?: boolean;
+  debtId?: string;
+  incomeId?: string;
   internalTransfer?: boolean;
   page: number;
   limit: number;

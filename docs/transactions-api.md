@@ -31,11 +31,11 @@ combinan con AND; dentro de `accountId`, `categoryId` o `type` se usa OR.
 | `dateFrom` | Fecha `YYYY-MM-DD` o instante ISO con zona horaria, límite inclusivo. |
 | `dateTo` | Fecha completa inclusiva (hasta el comienzo del día siguiente) o instante ISO inclusivo. |
 | `search` | Texto contenido en la descripción, sin distinguir mayúsculas; `%`, `_` y `\` se buscan literalmente. Máximo 200 caracteres. |
-| `type` | `Fixed_income`, `Variable_income`, `Fixed_expense`, `Variable_expense`, `Transfer`; admite varios. |
+| `type` | `income`, `expense`, `transfer`; admite varios. |
 | `kind` | `income`, `expense`, `transfer`. |
 | `state` | `Completed`, `Pending`, `Mixed`. Estado global de todas las partes. |
 | `minAmount`, `maxAmount` | Límites inclusivos sobre el valor absoluto del importe total; decimal sin signo, hasta 2 decimales. |
-| `isActive` | `true` o `false`; filtra el indicador existente `is_active`. Los valores nulos no coinciden. |
+| `debtId` / `incomeId` | UUID del origen para consultar sus movimientos e historial. |
 | `internalTransfer` | `true` o `false`; filtra transferencias internas identificadas. |
 | `page` | Entero entre 1 y 1.000.000, por defecto 1. |
 | `limit` | Entero entre 1 y 100, por defecto 25. |
@@ -52,7 +52,7 @@ paginación por número.
 Ejemplo:
 
 ```text
-GET /transactions?accountId=<uuid>&dateFrom=2026-10-01&dateTo=2026-10-31&type=Transfer&state=Completed&sortBy=amount&sortOrder=desc&limit=20
+GET /transactions?accountId=<uuid>&dateFrom=2026-10-01&dateTo=2026-10-31&type=transfer&state=Completed&sortBy=amount&sortOrder=desc&limit=20
 ```
 
 Los parámetros desconocidos, UUID inválidos, rangos invertidos y valores fuera
@@ -67,7 +67,7 @@ El detalle devuelve el mismo DTO que cada elemento del listado:
 ```json
 {
   "id": "00000000-0000-4000-8000-000000000020",
-  "type": "Transfer",
+  "type": "transfer",
   "kind": "transfer",
   "description": "Ahorro mensual",
   "category_id": null,
@@ -75,8 +75,8 @@ El detalle devuelve el mismo DTO que cada elemento del listado:
   "amount": "100.10",
   "created_at": "2026-10-19T12:00:00.000000Z",
   "updated_at": "2026-10-19T12:00:00.000000Z",
-  "cycle": null,
-  "is_active": null,
+  "debt_id": null,
+  "income_id": null,
   "state": "Completed",
   "is_internal_transfer": true,
   "from_account": {
@@ -100,7 +100,7 @@ El detalle devuelve el mismo DTO que cada elemento del listado:
 ```
 
 Una transacción representa un movimiento, aunque tenga varias partes. Una
-transferencia interna se identifica por `type=Transfer`, un origen propio y uno
+transferencia interna se identifica por `type=transfer`, un origen propio y uno
 o más destinos propios distintos del origen. El modelo ya enlaza estos datos
 mediante `transaction_id`; no se emparejan movimientos por coincidencia de fecha
 o importe. Filtrar por una cuenta siempre devuelve todas las partes del movimiento.
@@ -129,8 +129,7 @@ quitar la categoría. Devuelve el DTO completo actualizado. Se rechazan campos
 extra, UUID inválidos y cuerpos sin `category_id`.
 
 La categoría debe pertenecer al usuario y coincidir con el tipo de movimiento:
-`income` para `Fixed_income` / `Variable_income` y `expense` para `Fixed_expense`
-/ `Variable_expense`. Las transferencias no admiten categorías. Un tipo
+`income` para ingresos y `expense` para gastos. Las transferencias no admiten categorías. Un tipo
 incompatible devuelve `400 ValidationError`; una categoría inexistente o ajena
 produce `404 CategoryNotFound`. Los movimientos propios existentes siguen
 limitados a sus cuentas propias.
@@ -153,3 +152,41 @@ TRANSACTIONS_TEST_DATABASE_URL=postgres://usuario:clave@localhost/base_de_prueba
 La prueba PostgreSQL requiere permiso para crear tablas temporales. Sin esa
 variable se omite únicamente la integración SQL; las pruebas de validación,
 servicio y HTTP siguen ejecutándose.
+
+
+## Crear un movimiento puntual
+
+`POST /transactions` requiere sesión y origen web permitido. Solo permite `income` y `expense`.
+Los importes son positivos y se expresan como texto decimal. El tipo determina su efecto sobre el saldo.
+
+```json
+{
+  "type": "income",
+  "description": "Venta puntual",
+  "amount": "120.00",
+  "category_id": null,
+  "splits": [
+    { "account_id": "<uuid-cuenta-principal>", "amount": "100.00", "state": "Completed" },
+    { "account_id": "<uuid-ahorro>", "amount": "20.00", "state": "Completed" }
+  ]
+}
+```
+
+La suma de los splits debe coincidir exactamente con el importe. Se permiten splits pendientes y completados;
+el estado por defecto de un split explícito es `Completed`. Todas las cuentas y la categoría deben ser propias,
+y la categoría debe coincidir con el tipo. El movimiento puntual no admite `debt_id` ni `income_id` en la petición;
+los vínculos se crean exclusivamente mediante el devengo del origen.
+
+## Pagar, cobrar o repartir un movimiento
+
+`PUT /transactions/:transactionId/splits` sustituye atómicamente el reparto completo de un ingreso o gasto,
+conservando el importe total, tipo, origen, descripción, categoría y fecha del movimiento.
+El cuerpo es `{ "splits": [...] }`, con el mismo formato de creación y suma exacta.
+Esto permite liquidar un devengo pendiente, repartir un cobro entre varias cuentas o dejar una parte pendiente.
+Repetir el mismo reparto no duplica el dinero; los identificadores de los splits se regeneran.
+No modifica transferencias. Los splits `Completed` afectan a los saldos y al progreso del origen;
+los `Pending` se muestran como pendientes. La fecha de los cálculos existentes sigue siendo `created_at`
+del movimiento, no la fecha de liquidación.
+
+Los movimientos devengados se consultan también con `GET /transactions?debtId=<uuid>` o
+`GET /transactions?incomeId=<uuid>`. Véase [deudas e ingresos](ledger-api.md).

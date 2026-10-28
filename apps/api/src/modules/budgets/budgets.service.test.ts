@@ -84,7 +84,7 @@ test("budget accepts explicit month and rejects malformed strict inputs", async 
         createBudget({
           name: "Food",
           monthly_limit: "1",
-          about_type: "Fixed_income",
+          about_type: "income",
         }),
       )
     )._tag,

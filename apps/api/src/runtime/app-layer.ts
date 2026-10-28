@@ -6,6 +6,7 @@ import { CategoryRepositoryPostgresLayer } from "@/modules/categories/categories
 import { SavingsRepositoryPostgresLayer } from "@/modules/savings/savings.repository.postgres.js";
 import { TransactionRepositoryPostgresLayer } from "@/modules/transactions/transactions.repository.postgres.js";
 import { UserRepositoryPostgresLayer } from "@/modules/users/users.repository.postgres.js";
+import { LedgerRepositoryPostgresLayer } from "@/modules/ledger/ledger.repository.postgres.js";
 import { Layer } from "effect";
 
 export const AppLayer = Layer.mergeAll(
@@ -16,4 +17,5 @@ export const AppLayer = Layer.mergeAll(
   CategoryRepositoryPostgresLayer,
   BudgetRepositoryPostgresLayer,
   SavingsRepositoryPostgresLayer,
+  LedgerRepositoryPostgresLayer,
 ).pipe(Layer.provide(DatabaseLayer));

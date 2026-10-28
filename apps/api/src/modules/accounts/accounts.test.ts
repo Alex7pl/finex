@@ -91,13 +91,13 @@ test(
     `);
       await client`INSERT INTO accounts (id,user_id,name) VALUES (${a},${user.id},'Main'), (${b},${user.id},'Savings'), (${foreign},${other},'Private')`;
       await client`INSERT INTO transactions VALUES
-      (${id(20)}, ${user.id}, 'Variable_income', null, '2026-09-30T21:00:00Z'),
-      (${id(21)}, ${user.id}, 'Variable_income', null, '2026-10-01T00:00:00Z'),
-      (${id(22)}, ${user.id}, 'Variable_expense', null, '2026-10-02T12:00:00Z'),
-      (${id(23)}, ${user.id}, 'Transfer', ${a}, '2026-10-03T12:00:00Z'),
-      (${id(24)}, ${other}, 'Variable_income', null, '2026-10-03T12:00:00Z'),
-      (${id(25)}, ${user.id}, 'Variable_expense', ${foreign}, '2026-10-03T12:00:00Z'),
-      (${id(26)}, ${user.id}, 'Variable_expense', null, '2026-10-03T12:00:00Z')`;
+      (${id(20)}, ${user.id}, 'income', null, '2026-09-30T21:00:00Z'),
+      (${id(21)}, ${user.id}, 'income', null, '2026-10-01T00:00:00Z'),
+      (${id(22)}, ${user.id}, 'expense', null, '2026-10-02T12:00:00Z'),
+      (${id(23)}, ${user.id}, 'transfer', ${a}, '2026-10-03T12:00:00Z'),
+      (${id(24)}, ${other}, 'income', null, '2026-10-03T12:00:00Z'),
+      (${id(25)}, ${user.id}, 'expense', ${foreign}, '2026-10-03T12:00:00Z'),
+      (${id(26)}, ${user.id}, 'expense', null, '2026-10-03T12:00:00Z')`;
       await client`INSERT INTO transactions_splits VALUES
       (${id(30)},${id(20)},${a},1000,'Completed'),
       (${id(31)},${id(21)},${a},100,'Completed'),

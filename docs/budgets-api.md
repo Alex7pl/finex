@@ -22,7 +22,7 @@ Crear:
 
 `name` y `monthly_limit` son obligatorios. Los importes son strings decimales positivos de hasta 10 cifras enteras y 2 decimales (`numeric(12,2)`); números JSON, exponentes, negativos y precisión adicional se rechazan. `category_id` es opcional, nullable y debe identificar una categoría propia de tipo `expense`; null abarca todos los gastos. Una categoría vinculada no se puede eliminar hasta quitar el vínculo. PATCH admite cualquier subconjunto no vacío de los mismos campos; campos desconocidos se rechazan. Un cambio en el presupuesto afecta a su definición para todos los meses: no hay versiones mensuales.
 
-El filtro opcional legacy `about_type` permite `Fixed_expense`, `Variable_expense` o null; se combina con la categoría como intersección. Null abarca ambos tipos. Nuevos presupuestos de ingresos y transferencias se rechazan; registros legacy con estos valores tienen consumo cero.
+El filtro opcional `about_type` permite `expense` o null; ambos incluyen los gastos y se combinan con la categoría como intersección. Los presupuestos de ingresos y transferencias se rechazan. La migración convierte los antiguos filtros fijos/variables al tipo único `expense`.
 
 `month` usa `YYYY-MM`, por defecto el mes actual en `Europe/Madrid`. Los límites del mes son inclusivo al inicio y exclusivo al final y respetan horario de verano. La fecha del movimiento es `transactions.created_at`, igual que en el listado de movimientos; no se inventan fechas de liquidación de splits. `accountId` limita el consumo a las asignaciones de esa cuenta propia y no modifica el límite del presupuesto. Una cuenta inexistente/ajena devuelve `400 ValidationError`.
 

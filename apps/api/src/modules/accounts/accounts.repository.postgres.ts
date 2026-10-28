@@ -18,14 +18,14 @@ const movements = (userId: string) => sql`
         WHERE s.transaction_id = t.id AND a.user_id <> ${userId})
   ), movements AS (
     SELECT s.account_id, t.created_at AS period, t.type,
-      CASE WHEN t.type IN ('Fixed_expense', 'Variable_expense') THEN -abs(s.amount)
+      CASE WHEN t.type = 'expense' THEN -abs(s.amount)
         ELSE abs(s.amount) END AS amount
     FROM visible t JOIN transactions_splits s ON s.transaction_id = t.id
     WHERE s.state = 'Completed'
     UNION ALL
     SELECT t."from", t.created_at, t.type, -abs(s.amount)
     FROM visible t JOIN transactions_splits s ON s.transaction_id = t.id
-    WHERE t.type = 'Transfer' AND t."from" IS NOT NULL AND s.state = 'Completed'
+    WHERE t.type = 'transfer' AND t."from" IS NOT NULL AND s.state = 'Completed'
   )`;
 
 export const AccountRepositoryPostgresLayer = Layer.effect(
@@ -67,8 +67,8 @@ export const AccountRepositoryPostgresLayer = Layer.effect(
             COALESCE(sum(amount) FILTER (WHERE period < ${start}::timestamptz), 0) AS initial_balance,
             COALESCE(sum(amount) FILTER (WHERE period >= ${start}::timestamptz - (${end}::timestamptz - ${start}::timestamptz)
               AND period < ${start}::timestamptz), 0) AS previous_change,
-            COALESCE(sum(amount) FILTER (WHERE period >= ${start}::timestamptz AND type IN ('Fixed_income','Variable_income')), 0) AS income,
-            COALESCE(sum(-amount) FILTER (WHERE period >= ${start}::timestamptz AND type IN ('Fixed_expense','Variable_expense')), 0) AS expenses
+            COALESCE(sum(amount) FILTER (WHERE period >= ${start}::timestamptz AND type = 'income'), 0) AS income,
+            COALESCE(sum(-amount) FILTER (WHERE period >= ${start}::timestamptz AND type = 'expense'), 0) AS expenses
           FROM scoped
         ), periods AS (
           SELECT bucket FROM generate_series(

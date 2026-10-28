@@ -23,7 +23,7 @@ test("Postgres transaction listing, grouping, filters and ownership", {
       CREATE TEMP TABLE categories (id uuid PRIMARY KEY, user_id uuid, name text, kind text, emoji text, color text,
         created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now());
       CREATE TEMP TABLE transactions (id uuid PRIMARY KEY, user_id uuid, type text, description text,
-        amount numeric(12,2), "from" uuid, category_id uuid, cycle timestamptz, is_active boolean,
+        amount numeric(12,2), "from" uuid, category_id uuid, debt_id uuid, income_id uuid,
         created_at timestamptz, updated_at timestamptz DEFAULT now());
       CREATE TEMP TABLE transactions_splits (id uuid PRIMARY KEY, transaction_id uuid,
         account_id uuid, amount numeric(12,2), state text);
@@ -37,13 +37,13 @@ test("Postgres transaction listing, grouping, filters and ownership", {
       await client`INSERT INTO transactions (id, user_id, type, "from", description, amount, created_at)
         VALUES (${id(n)}, ${owner}, ${type}, ${from}, ${description}, ${amount}, '2026-10-19T12:00:00Z')`;
     };
-    await insert(20, user, "Transfer", a, "Save 10%_monthly", "100.10");
-    await insert(21, user, "Variable_expense", null, "Coffee", "3.50");
-    await insert(22, other, "Variable_income", null, "Private salary", "1000");
-    await insert(23, user, "Transfer", a, "Invalid foreign link", "20");
-    await insert(24, user, "Fixed_income", null, "Salary", "2000");
-    await insert(25, user, "Transfer", a, "Invalid foreign destination", "20");
-    await insert(26, user, "Transfer", foreign, "Invalid foreign source", "20");
+    await insert(20, user, "transfer", a, "Save 10%_monthly", "100.10");
+    await insert(21, user, "expense", null, "Coffee", "3.50");
+    await insert(22, other, "income", null, "Private salary", "1000");
+    await insert(23, user, "transfer", a, "Invalid foreign link", "20");
+    await insert(24, user, "income", null, "Salary", "2000");
+    await insert(25, user, "transfer", a, "Invalid foreign destination", "20");
+    await insert(26, user, "transfer", foreign, "Invalid foreign source", "20");
     await client`INSERT INTO transactions_splits VALUES
       (${id(30)}, ${id(20)}, ${b}, 60.05, 'Completed'),
       (${id(31)}, ${id(20)}, ${b}, 40.05, 'Pending'),
@@ -87,7 +87,7 @@ test("Postgres transaction listing, grouping, filters and ownership", {
       for (const n of [22, 23, 25, 26, 99]) assert.equal(await detail(id(n)), null);
     });
     await t.test("combined type, date, amount, literal search and aggregate state filters", async () => {
-      const result = await list({ type: "Transfer", kind: "transfer", dateFrom: "2026-10-19",
+      const result = await list({ type: "transfer", kind: "transfer", dateFrom: "2026-10-19",
         dateTo: "2026-10-19", minAmount: "100.10", maxAmount: "100.10", search: "10%_", state: "Mixed", internalTransfer: "true" });
       assert.equal(result.total, 1);
       assert.equal((await list({ dateFrom: "2026-10-19T11:00:00Z", dateTo: "2026-10-19" })).total, 3);
@@ -96,7 +96,7 @@ test("Postgres transaction listing, grouping, filters and ownership", {
       assert.equal((await list({ dateTo: "2026-10-18" })).total, 0);
       assert.equal((await list({ kind: "expense", state: "Completed" })).total, 1);
       assert.equal((await list({ internalTransfer: "false" })).total, 2);
-      assert.equal((await list({ isActive: "false" })).total, 0);
+      assert.equal((await list({ debtId: id(99) })).total, 0);
     });
     await t.test("category assignment, filters, kind checks and ownership", async () => {
       const assign = (transactionId: string, categoryId: string | null) => run(Effect.flatMap(TransactionRepository,

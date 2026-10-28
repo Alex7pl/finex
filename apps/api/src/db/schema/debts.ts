@@ -1,7 +1,8 @@
 import { sql } from "drizzle-orm";
-import { check, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, check, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { idColumn, moneyColumn, timestampColumns } from "../helpers.js";
 import { accounts } from "./accounts.js";
+import { categories } from "./categories.js";
 import { users } from "./users.js";
 
 export const debts = pgTable("debts", {
@@ -14,15 +15,17 @@ export const debts = pgTable("debts", {
     .references(() => accounts.id, { onDelete: "restrict", onUpdate: "cascade" })
     .notNull(),
 
-  name: text("name"),
+  name: text("name").notNull(),
+  category_id: uuid("category_id").references(() => categories.id, { onDelete: "set null", onUpdate: "cascade" }),
+  is_active: boolean("is_active").notNull().default(true),
 
   // for debts with interest
   capital: moneyColumn("capital"),
   interests: moneyColumn("interests"),
-  time_limit: timestamp("time_limit", { withTimezone: true }).defaultNow(),
+  time_limit: timestamp("time_limit", { withTimezone: true }),
 
   // for simple debts
-  quota: moneyColumn("quota"),
+  quota: moneyColumn("quota").notNull(),
 
   ...timestampColumns,
 }, (table) => [
@@ -30,5 +33,6 @@ export const debts = pgTable("debts", {
   index("debts_account_id_idx").on(table.account_id),
   check("debts_capital_non_negative", sql`${table.capital} IS NULL OR ${table.capital} >= 0`),
   check("debts_interests_non_negative", sql`${table.interests} IS NULL OR ${table.interests} >= 0`),
-  check("debts_quota_non_negative", sql`${table.quota} IS NULL OR ${table.quota} >= 0`),
+  check("debts_quota_positive", sql`${table.quota} > 0`),
+  check("debts_interest_requires_capital", sql`${table.capital} IS NOT NULL OR ${table.interests} IS NULL`),
 ]);

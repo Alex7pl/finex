@@ -1,25 +1,23 @@
 import { sql } from "drizzle-orm";
 import {
-  boolean,
   check,
   index,
   pgEnum,
   pgTable,
   text,
-  timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
 import { idColumn, moneyColumn, timestampColumns } from "../helpers.js";
 import { accounts } from "./accounts.js";
 import { categories } from "./categories.js";
+import { debts } from "./debts.js";
+import { incomes } from "./incomes.js";
 import { users } from "./users.js";
 
 export const transactionsTypeEnum = pgEnum("transactions_type", [
-  "Fixed_income",
-  "Variable_income",
-  "Fixed_expense",
-  "Variable_expense",
-  "Transfer",
+  "income",
+  "expense",
+  "transfer",
 ]);
 
 export const transactionsSplitsStateEnum = pgEnum("state", [
@@ -48,9 +46,8 @@ export const transactions = pgTable(
       onUpdate: "cascade",
     }),
 
-    //For fixed transactions
-    cycle: timestamp("cycle", { withTimezone: true }).defaultNow(),
-    is_active: boolean("is_active"),
+    debt_id: uuid("debt_id").references(() => debts.id, { onDelete: "set null", onUpdate: "cascade" }),
+    income_id: uuid("income_id").references(() => incomes.id, { onDelete: "set null", onUpdate: "cascade" }),
 
     ...timestampColumns,
   },
@@ -58,7 +55,10 @@ export const transactions = pgTable(
     index("transactions_user_id_idx").on(table.user_id),
     index("transactions_category_id_idx").on(table.category_id),
     index("transactions_from_idx").on(table.from),
-    check("transactions_transfer_no_category", sql`${table.type} <> 'Transfer' OR ${table.category_id} IS NULL`),
+    index("transactions_debt_id_idx").on(table.debt_id),
+    index("transactions_income_id_idx").on(table.income_id),
+    check("transactions_source_matches_type", sql`(${table.debt_id} IS NULL OR (${table.type} = 'expense' AND ${table.income_id} IS NULL)) AND (${table.income_id} IS NULL OR (${table.type} = 'income' AND ${table.debt_id} IS NULL))`),
+    check("transactions_transfer_no_category", sql`${table.type} <> 'transfer' OR ${table.category_id} IS NULL`),
     check("transactions_amount_non_zero", sql`${table.amount} <> 0`),
   ],
 );

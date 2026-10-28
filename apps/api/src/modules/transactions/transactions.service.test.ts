@@ -10,10 +10,10 @@ const user = { id: "00000000-0000-4000-8000-000000000001", email: "user@test.dev
 
 test("transaction filters accept repeated/comma-separated IDs and explicit false", async () => {
   const filters = await Effect.runPromise(parseTransactionFilters({
-    accountId: [user.id, user.id], type: "Transfer,Fixed_income", internalTransfer: "false",
+    accountId: [user.id, user.id], type: "transfer,income", internalTransfer: "false",
     minAmount: "0.01", maxAmount: "9999999999.99", dateFrom: "2026-10-01", limit: "100",
   }));
-  assert.deepEqual(filters.types, ["Transfer", "Fixed_income"]);
+  assert.deepEqual(filters.types, ["transfer", "income"]);
   assert.equal(filters.internalTransfer, false);
   assert.equal(filters.limit, 100);
   assert.equal(filters.page, 1);
@@ -75,9 +75,9 @@ test("assign categories enforces authenticated ownership, matching kind and tran
   const { CategoryRepository } = await import("../categories/categories.repository.js");
   const category = { id: user.id, name: "Food", kind: "expense" as "expense" | "income", emoji: null, color: null,
     created_at: "2026-10-19T00:00:00Z", updated_at: "2026-10-19T00:00:00Z" };
-  const transaction = { id: user.id, type: "Variable_expense" as const, kind: "expense" as "income" | "expense" | "transfer",
+  const transaction = { id: user.id, type: "expense" as const, kind: "expense" as "income" | "expense" | "transfer",
     description: "Lunch", amount: "12.00", category_id: null, category: null,
-    created_at: category.created_at, updated_at: category.updated_at, cycle: null, is_active: null,
+    created_at: category.created_at, updated_at: category.updated_at, debt_id: null, income_id: null,
     state: "Completed" as const, is_internal_transfer: false, from_account: null, splits: [] };
   let writes = 0, found = true;
   const transactions: typeof TransactionRepository.Service = {

@@ -41,7 +41,7 @@ export function TransactionDialog({
             : transaction.kind === "expense"
               ? "Gasto"
               : "Transferencia"}
-          {transaction.type.startsWith("Fixed_") ? " fijo" : ""}
+          {transaction.debt_id || transaction.income_id ? " · Devengado" : ""}
         </dd>
         <dt className="text-ink-muted">Categoría</dt>
         <dd>{transaction.category?.name ?? "Sin categoría"}</dd>

@@ -6,6 +6,7 @@ import { AppLayer } from "../runtime/app-layer.js";
 import { CategoryRepository } from "../modules/categories/categories.repository.js";
 import { BudgetRepository } from "../modules/budgets/budgets.repository.js";
 import { SavingsRepository } from "../modules/savings/savings.repository.js";
+import { LedgerRepository } from "../modules/ledger/ledger.repository.js";
 import { createApp } from "../app.js";
 import { createAccessToken } from "../modules/auth/auth.tokens.js";
 
@@ -25,7 +26,7 @@ test("planning and category endpoints are mounted and protected in the real app"
     });
     const cookie = `accessToken=${token}`;
     const uuid = "00000000-0000-4000-8000-000000000010";
-    for (const path of ["/categories", "/budgets", "/savings", "/transactions"]) {
+    for (const path of ["/categories", "/budgets", "/savings", "/transactions", "/debts", "/incomes"]) {
       const response = await fetch(`${baseUrl}${path}`);
       assert.equal(response.status, 401, path);
       const body = await response.json() as { error: { code: string; requestId: string } };
@@ -33,6 +34,9 @@ test("planning and category endpoints are mounted and protected in the real app"
       assert.ok(body.error.requestId);
     }
     for (const [method, path] of [
+      ["POST", "/transactions"], ["PUT", `/transactions/${uuid}/splits`],
+      ["POST", "/debts"], ["PATCH", `/debts/${uuid}`], ["DELETE", `/debts/${uuid}`], ["POST", `/debts/${uuid}/accrue`],
+      ["POST", "/incomes"], ["PATCH", `/incomes/${uuid}`], ["DELETE", `/incomes/${uuid}`], ["POST", `/incomes/${uuid}/accrue`],
       ["POST", "/categories"], ["PATCH", `/categories/${uuid}`], ["DELETE", `/categories/${uuid}`],
       ["POST", "/budgets"], ["PATCH", `/budgets/${uuid}`], ["DELETE", `/budgets/${uuid}`],
       ["POST", "/savings"], ["PATCH", `/savings/${uuid}`], ["DELETE", `/savings/${uuid}`],
@@ -44,7 +48,7 @@ test("planning and category endpoints are mounted and protected in the real app"
       assert.equal(response.status, 401, `${method} ${path}`);
       assert.equal((await response.json() as { error: { code: string } }).error.code, "UnauthorizedError");
     }
-    for (const path of ["/categories/not-a-uuid", "/budgets/not-a-uuid", "/savings/not-a-uuid"]) {
+    for (const path of ["/categories/not-a-uuid", "/budgets/not-a-uuid", "/savings/not-a-uuid", "/debts/not-a-uuid", "/incomes/not-a-uuid"]) {
       const response = await fetch(`${baseUrl}${path}`, { headers: { cookie } });
       assert.equal(response.status, 400, path);
       assert.equal((await response.json() as { error: { code: string } }).error.code, "ValidationError");
@@ -60,4 +64,5 @@ test("AppLayer provides every category and planning repository", async () => {
   assert.ok(Context.get(context, CategoryRepository));
   assert.ok(Context.get(context, BudgetRepository));
   assert.ok(Context.get(context, SavingsRepository));
+  assert.ok(Context.get(context, LedgerRepository));
 });

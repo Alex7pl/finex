@@ -26,7 +26,7 @@ export const BudgetRepositoryPostgresLayer = Layer.effect(
     COALESCE(SUM(abs(s.amount)) FILTER (WHERE s.state = 'Completed'), 0)::text AS spent,
     COALESCE(SUM(abs(s.amount)) FILTER (WHERE s.state = 'Pending'), 0)::text AS pending
     FROM budgets b
-    LEFT JOIN transactions t ON t.user_id = b.user_id AND t.type IN ('Fixed_expense', 'Variable_expense')
+    LEFT JOIN transactions t ON t.user_id = b.user_id AND t.type = 'expense'
      AND (b.about_type IS NULL OR t.type = b.about_type)
      AND (b.category_id IS NULL OR (t.category_id = b.category_id AND EXISTS (
       SELECT 1 FROM categories c WHERE c.id = b.category_id AND c.user_id = b.user_id AND c.kind = 'expense'

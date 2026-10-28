@@ -10,15 +10,15 @@ import { TransactionRepository } from "./transactions.repository.js";
 function visibleTransactions(userId: string) {
   return sql`
     SELECT t.*,
-      CASE WHEN t.type = 'Transfer' THEN 'transfer'
-        WHEN t.type IN ('Fixed_income', 'Variable_income') THEN 'income'
+      CASE WHEN t.type = 'transfer' THEN 'transfer'
+        WHEN t.type = 'income' THEN 'income'
         ELSE 'expense' END AS kind,
       CASE WHEN EXISTS (SELECT 1 FROM transactions_splits s WHERE s.transaction_id = t.id AND s.state = 'Pending')
         THEN CASE WHEN EXISTS (SELECT 1 FROM transactions_splits s WHERE s.transaction_id = t.id AND s.state = 'Completed')
           THEN 'Mixed' ELSE 'Pending' END
         WHEN EXISTS (SELECT 1 FROM transactions_splits s WHERE s.transaction_id = t.id) THEN 'Completed'
         ELSE 'Pending' END AS state,
-      (t.type = 'Transfer' AND t."from" IS NOT NULL
+      (t.type = 'transfer' AND t."from" IS NOT NULL
         AND EXISTS (SELECT 1 FROM transactions_splits s WHERE s.transaction_id = t.id)
         AND NOT EXISTS (SELECT 1 FROM transactions_splits s WHERE s.transaction_id = t.id AND s.account_id = t."from")
       ) AS is_internal_transfer
@@ -45,8 +45,7 @@ const dto = sql`jsonb_build_object(
   'description', t.description, 'amount', t.amount::text,
   'created_at', to_char(t.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
   'updated_at', to_char(t.updated_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
-  'cycle', to_char(t.cycle AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
-  'is_active', t.is_active, 'state', t.state,
+  'debt_id', t.debt_id, 'income_id', t.income_id, 'state', t.state,
   'is_internal_transfer', t.is_internal_transfer,
   'from_account', (SELECT ${accountJson(sql`a`)} FROM accounts a WHERE a.id = t."from"),
   'splits', COALESCE((
@@ -87,7 +86,8 @@ function conditions(filters: TransactionFilters) {
   }
   if (filters.minAmount !== undefined) parts.push(sql`abs(t.amount) >= ${filters.minAmount}::numeric`);
   if (filters.maxAmount !== undefined) parts.push(sql`abs(t.amount) <= ${filters.maxAmount}::numeric`);
-  if (filters.isActive !== undefined) parts.push(sql`t.is_active = ${filters.isActive}`);
+  if (filters.debtId) parts.push(sql`t.debt_id = ${filters.debtId}::uuid`);
+  if (filters.incomeId) parts.push(sql`t.income_id = ${filters.incomeId}::uuid`);
   if (filters.internalTransfer !== undefined) parts.push(sql`t.is_internal_transfer = ${filters.internalTransfer}`);
   return sql.join(parts, sql` AND `);
 }
@@ -129,8 +129,8 @@ export const TransactionRepositoryPostgresLayer = Layer.effect(
             WHERE t.id = ${id}::uuid AND t.id IN (SELECT id FROM visible)
               AND (${categoryId}::uuid IS NULL OR EXISTS (
                 SELECT 1 FROM categories c WHERE c.id = ${categoryId}::uuid AND c.user_id = ${userId}
-                  AND ((c.kind = 'income' AND t.type IN ('Fixed_income', 'Variable_income'))
-                    OR (c.kind = 'expense' AND t.type IN ('Fixed_expense', 'Variable_expense')))
+                  AND ((c.kind = 'income' AND t.type = 'income')
+                    OR (c.kind = 'expense' AND t.type = 'expense'))
               )) RETURNING t.id
           `);
           if (!rows.length) return null;

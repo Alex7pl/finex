@@ -8,7 +8,7 @@ export const CreateBudgetInput = Schema.Struct({
   monthly_limit: PositiveMoney,
   category_id: Schema.optional(Schema.NullOr(Schema.UUID)),
   about_type: Schema.optional(
-    Schema.NullOr(Schema.Literal("Fixed_expense", "Variable_expense")),
+    Schema.NullOr(Schema.Literal("expense")),
   ),
 });
 export const UpdateBudgetInput = Schema.partial(CreateBudgetInput);

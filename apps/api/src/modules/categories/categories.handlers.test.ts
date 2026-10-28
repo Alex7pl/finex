@@ -31,10 +31,10 @@ test("category and transaction category HTTP contracts validate auth, mutations 
     remove: () => { calls++; return Effect.succeed(true); },
   };
   const transaction = {
-    id: user.id, type: "Variable_expense" as const, kind: "expense" as const,
+    id: user.id, type: "expense" as const, kind: "expense" as const,
     amount: "10.00", description: "Lunch", category_id: null, category: null,
     created_at: category.created_at, updated_at: category.updated_at,
-    cycle: null, is_active: null, state: "Completed" as const,
+    debt_id: null, income_id: null, state: "Completed" as const,
     is_internal_transfer: false, from_account: null, splits: [],
   };
   const transactions: typeof TransactionRepository.Service = {
