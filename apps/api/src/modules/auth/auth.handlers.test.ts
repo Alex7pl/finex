@@ -53,6 +53,8 @@ async function requestAuth(input: {
   const runWithRepositories = ((_context: unknown, program: Effect.Effect<unknown, unknown, unknown>) =>
     program.pipe(
       Effect.provideService(UserRepository, {
+        findProfileById: () => Effect.succeed(null),
+        updateProfile: () => Effect.succeed(null),
         findUser: () => Effect.succeed(user),
         findUserById: () => Effect.succeed(user),
         createUser: () => Effect.succeed(user),

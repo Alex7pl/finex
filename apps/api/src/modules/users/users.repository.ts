@@ -1,3 +1,4 @@
+import type { UserProfile } from "@finex/shared/users/users.schema.js";
 import { DatabaseError } from "@/shared/errors.js";
 import { UserAlreadyExists } from "@finex/shared/auth/auth.errors.js";
 import { Context, Effect } from "effect";
@@ -12,6 +13,9 @@ export interface UserRecord {
 export class UserRepository extends Context.Tag("UserRepository")<
   UserRepository,
   {
+    findProfileById: (id: string) => Effect.Effect<UserProfile | null, DatabaseError>;
+    updateProfile: (id: string, input: { username?: string; email?: string }) =>
+      Effect.Effect<UserProfile | null, UserAlreadyExists | DatabaseError>;
     findUser: (email: string) => Effect.Effect<
       UserRecord | null,
       DatabaseError

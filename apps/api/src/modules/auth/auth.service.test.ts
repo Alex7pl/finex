@@ -29,6 +29,8 @@ const user = {
 };
 
 const userRepository = {
+  findProfileById: () => Effect.succeed(null),
+  updateProfile: () => Effect.succeed(null),
   findUser: () => Effect.succeed(user),
   findUserById: () => Effect.succeed(user),
   createUser: () => Effect.succeed(user),

@@ -1,3 +1,4 @@
+import type { UserProfile } from "@finex/shared/users/users.schema.js";
 import { DatabaseService } from "@/db/db.service.js";
 import { users } from "@/db/schema/users.js";
 import { eq } from "drizzle-orm";
@@ -7,7 +8,30 @@ import { UserRepository } from "./users.repository.js";
 import { UserAlreadyExists } from "@finex/shared/auth/auth.errors.js";
 
 function isUniqueViolation(cause: unknown): boolean {
-  return typeof cause === "object" && cause !== null && "code" in cause && cause.code === "23505";
+  if (typeof cause !== "object" || cause === null) return false;
+  if ("code" in cause && cause.code === "23505") return true;
+  return "cause" in cause && typeof cause.cause === "object" && cause.cause !== null
+    && "code" in cause.cause && cause.cause.code === "23505";
+}
+
+const publicColumns = {
+  id: users.id,
+  email: users.email,
+  username: users.username,
+  created_at: users.created_at,
+  updated_at: users.updated_at,
+};
+
+function profile(row: {
+  id: string; email: string; username: string; created_at: Date; updated_at: Date;
+}): UserProfile {
+  return {
+    id: row.id,
+    email: row.email,
+    username: row.username,
+    created_at: row.created_at.toISOString(),
+    updated_at: row.updated_at.toISOString(),
+  };
 }
 
 export const UserRepositoryPostgresLayer = Layer.effect(
@@ -16,6 +40,23 @@ export const UserRepositoryPostgresLayer = Layer.effect(
     const db = yield* DatabaseService;
 
     return {
+      findProfileById: (id: string) => Effect.tryPromise({
+        try: async () => {
+          const [row] = await db.select(publicColumns).from(users).where(eq(users.id, id)).limit(1);
+          return row ? profile(row) : null;
+        },
+        catch: (cause) => new DatabaseError({ message: "Failed to read user profile", cause }),
+      }),
+      updateProfile: (id: string, input: { username?: string; email?: string }) => Effect.tryPromise({
+        try: async () => {
+          const [row] = await db.update(users).set({ ...input, updated_at: new Date() })
+            .where(eq(users.id, id)).returning(publicColumns);
+          return row ? profile(row) : null;
+        },
+        catch: (cause) => isUniqueViolation(cause)
+          ? new UserAlreadyExists({ message: "Email or username already exists" })
+          : new DatabaseError({ message: "Failed to update user profile", cause }),
+      }),
       findUser: (email: string) =>
         Effect.gen(function* () {
           const user = yield* Effect.promise(() =>

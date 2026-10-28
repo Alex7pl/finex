@@ -19,6 +19,10 @@ const refreshCookieOptions: CookieOptions = {
   maxAge: env.JWT_REFRESH_EXPIRES_IN_SECONDS * 1000,
 };
 
+export function setAccessCookie(res: Response, accessToken: string) {
+  res.cookie("accessToken", accessToken, accessCookieOptions);
+}
+
 export function setAuthCookies(
   res: Response,
   input: {
@@ -26,7 +30,7 @@ export function setAuthCookies(
     refreshToken: string;
   },
 ) {
-  res.cookie("accessToken", input.accessToken, accessCookieOptions);
+  setAccessCookie(res, input.accessToken);
   res.cookie("refreshToken", input.refreshToken, refreshCookieOptions);
 }
 
